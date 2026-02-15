@@ -1,0 +1,22 @@
+[GENERATE QUEST]
+
+CONTEXT:
+- Quest Origin: Town Venswiss
+- Quest Giver Name: Sergent Rufas
+- Challenge Rating: 1
+
+Available Monsters (CR 1): Goblin, Skeleton, Bandit, Sellsword, Stirge, Giant Rat, Wolf, Boar, Vulture, Badger, Zombie, Skeleton Warrior, Skeleton Archer, Ghoul
+
+Available Quest Area types: cave, forest, dungeon, keep, house, mountain pass, swamp, ancient ruin
+
+Available Objective Types (generate these values for each objective):
+- TravelTo: questArea (name, type, description)
+- Combat: 1 or more monsterTypes (pick from available monsters)
+- TalkToNpc: npcName, npcRole, npcDescription
+- CollectItem: itemName, itemDescription
+- GatherInformation: npcName, npcRole, npcDescription, informationName, informationDescription
+- EscortNpc: npcName, npcRole, npcDescription, location (pick from Available Environments), locationName, areaDescription (what's inside that location)
+- Return: current town
+
+A TravelTo step is required before all objectives except for TravelTo, EscortNpc, and Return.
+EscortNpc counts as a TravelTo step.
