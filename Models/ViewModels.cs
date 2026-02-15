@@ -1,6 +1,15 @@
 using System;
+using System.Collections.Generic;
 
 namespace OllamaClient.Models;
+
+public class HomeIndexViewModel
+{
+    public string Prompt { get; set; } = string.Empty;
+    public List<Prompt> AvailablePrompts { get; set; } = new();
+    public string? SelectedPromptId { get; set; }
+    public string ErrorMessage { get; set; } = string.Empty;
+}
 
 public class RequestResponseViewModel
 {

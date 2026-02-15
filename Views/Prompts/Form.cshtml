@@ -1,0 +1,95 @@
+@using OllamaClient.Models
+@model Prompt
+
+@{
+    string title = string.IsNullOrEmpty(Model?.Id) ? "Create Prompt" : "Edit Prompt";
+    string submitButtonText = string.IsNullOrEmpty(Model?.Id) ? "Create" : "Update";
+    string action = string.IsNullOrEmpty(Model?.Id) ? "Create" : "Edit";
+    
+    ViewData["Title"] = title;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>@title</h1>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <h4 class="alert-heading">Please fix the errors below:</h4>
+                    <ul>
+                        @foreach (var modelState in ViewData.ModelState.Values)
+                        {
+                            @foreach (var error in modelState.Errors)
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        }
+                    </ul>
+                </div>
+            }
+
+            <form method="post" action="@Url.Action(action, "Prompts")">
+                @if (!string.IsNullOrEmpty(Model?.Id))
+                {
+                    <input type="hidden" name="Id" value="@Model.Id" />
+                }
+
+                <div class="mb-3">
+                    <label for="Name" class="form-label">Prompt Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="Name" name="Name" 
+                           placeholder="e.g., Quest Generator, Dialog Writer, etc."
+                           value="@Model?.Name" required />
+                    <small class="form-text text-muted">A friendly name for this prompt template</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="Content" class="form-label">Prompt Content <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="Content" name="Content" 
+                              rows="15" placeholder="Enter your prompt here..."
+                              required>@Model?.Content</textarea>
+                    <small class="form-text text-muted">The full prompt template that will be sent to Ollama</small>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> @submitButtonText Prompt
+                    </button>
+                    <a href="@Url.Action("Index", "Prompts")" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Prompt Tips</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Best Practices</h6>
+                    <ul class="small">
+                        <li>Be specific and detailed</li>
+                        <li>Include context about the task</li>
+                        <li>Provide examples if helpful</li>
+                        <li>Indicate desired output format</li>
+                        <li>Use clear section headers</li>
+                    </ul>
+
+                    @if (Model != null && !string.IsNullOrEmpty(Model.Id))
+                    {
+                        <hr />
+                        <h6>Metadata</h6>
+                        <small class="text-muted">
+                            <p><strong>Created:</strong> @Model.CreatedAt.ToString("g")</p>
+                            <p><strong>Last Updated:</strong> @Model.UpdatedAt.ToString("g")</p>
+                            <p><strong>ID:</strong> <code>@Model.Id</code></p>
+                        </small>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

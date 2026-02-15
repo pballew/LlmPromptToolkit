@@ -16,7 +16,19 @@
 <body>
     <nav class="navbar navbar-dark fixed-top">
         <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">Ollama Client</span>
+            <a class="navbar-brand" href="@Url.Action("Index", "Home")">Ollama Client</a>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Home")">Request Builder</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Prompts")">
+                            <i class="bi bi-chat-dots"></i> Prompts
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
 

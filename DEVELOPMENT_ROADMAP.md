@@ -27,18 +27,18 @@ Convert console app to ASP.NET Core MVC web app with simple prompt submission an
 Implement CRUD for prompt files stored in filesystem.
 
 ### Tasks
-- [ ] Create PromptsController with Index, Create, Edit, Delete actions
-- [ ] Create Prompt model class with properties (id, name, content, createdAt, updatedAt)
-- [ ] Implement PromptService.GetAllPromptsAsync() to read from Data/Prompts/
-- [ ] Implement PromptService.SavePromptAsync() to write prompt JSON
-- [ ] Create Prompts/Index.cshtml to list all prompts with edit/delete buttons
-- [ ] Create Prompts/Form.cshtml for create/edit with textarea, name input, submit button
-- [ ] Add modal or page for delete confirmation
-- [ ] Update HomeController to have prompt dropdown selector
-- [ ] Add "Use Prompt" button that loads selected prompt into builder
-- [ ] Test: Create prompt → display in list → select in builder → content loads
-- [ ] Test: Edit prompt → verify changes saved → verify previous version replaced
-- [ ] Test: Delete prompt → verify removed from list and filesystem
+- [x] Create PromptsController with Index, Create, Edit, Delete actions
+- [x] Create Prompt model class with properties (id, name, content, createdAt, updatedAt)
+- [x] Implement PromptService.GetAllPromptsAsync() to read from Data/Prompts/
+- [x] Implement PromptService.SavePromptAsync() to write prompt JSON
+- [x] Create Prompts/Index.cshtml to list all prompts with edit/delete buttons
+- [x] Create Prompts/Form.cshtml for create/edit with textarea, name input, submit button
+- [x] Add modal or page for delete confirmation
+- [x] Update HomeController to have prompt dropdown selector
+- [x] Add "Use Prompt" button that loads selected prompt into builder
+- [x] Test: Create prompt → display in list → select in builder → content loads
+- [x] Test: Edit prompt → verify changes saved → verify previous version replaced
+- [x] Test: Delete prompt → verify removed from list and filesystem
 
 **Integration Test Success Criteria:**
 - ✓ Create new prompt creates JSON file in Data/Prompts/
