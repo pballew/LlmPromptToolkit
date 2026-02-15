@@ -36,10 +36,34 @@
             border-bottom: 3px solid var(--primary-dark);
         }
 
+        .navbar .container-fluid {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .navbar-collapse {
+            flex: 1;
+        }
+
+        .navbar-nav {
+            display: flex;
+            flex-direction: row;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            list-style: none;
+        }
+
         .navbar-brand {
             font-weight: 700;
             font-size: 1.5rem;
             letter-spacing: -0.5px;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .nav-link {
@@ -309,7 +333,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav w-100 justify-content-around">
                     <li class="nav-item">
                         <a class="nav-link" href="@Url.Action("Index", "Home")">
                             <i class="bi bi-pencil-square"></i> Request Builder

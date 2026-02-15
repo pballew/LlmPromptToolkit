@@ -35,19 +35,22 @@
                                 <i class="bi bi-bookmark-fill"></i> Select a Saved Prompt
                             </label>
                             <div class="input-group input-group-lg">
-                                <select class="form-select" id="selectedPromptId" name="selectedPromptId" onchange="loadPromptContent()" style="max-width: 100%;">
+                                <select class="form-select" id="selectedPromptId" name="selectedPromptId"
+                                        onchange="loadPromptContent()" style="max-width: 100%;">
                                     <option value="">-- Choose a prompt --</option>
                                     @foreach (var p in Model.AvailablePrompts)
                                     {
                                         <option value="@p.Id">@p.Name</option>
                                     }
                                 </select>
-                                <a href="@Url.Action("Index", "Prompts")" class="btn btn-outline-secondary" title="Manage saved prompts">
+                                <a href="@Url.Action("Index", "Prompts")" class="btn btn-outline-secondary"
+                                       title="Manage saved prompts">
                                     <i class="bi bi-gear"></i> Manage
                                 </a>
                             </div>
                             <small class="form-text text-muted d-block mt-2">
-                                <i class="bi bi-info-circle"></i> Or <a href="@Url.Action("Create", "Prompts")">create a new prompt</a>
+                                <i class="bi bi-info-circle"></i> Or <a href="@Url.Action("Create", "Prompts")">create a new
+                                prompt</a>
                             </small>
                         </div>
                     }
@@ -55,117 +58,124 @@
                     {
                         <div class="alert alert-info mb-4">
                             <i class="bi bi-lightbulb-fill"></i>
-                            <p class="mb-1"><strong>No saved prompts yet.</strong> <a href="@Url.Action("Create", "Prompts")" class="alert-link">Create one now</a> to quickly load prompts into the builder.</p>
+                            <p class="mb-1"><strong>No saved prompts yet.</strong> <a
+                                href="@Url.Action("Create", "Prompts")" class="alert-link">Create one now</a> to quickly
+                                load prompts into the builder.</p>
+                            </div>
+                        }
+
+                        <div class="d-flex flex-column mb-3">
+                            <div>
+                                <label for="prompt" class="form-label">
+                                    <i class="bi bi-chat-dots-fill"></i> Enter Your Prompt
+                                </label>
+                            </div>
+
+                            <div style="width: 100%;">
+                                <textarea class="form-control" id="prompt" name="prompt" style="width: 100%;"
+                                          placeholder="Enter your prompt here... or select one from your saved prompts above"
+                                          required>@Model?.Prompt</textarea>
+                            </div>
+
+                            <div>
+                                <small class="form-text text-muted d-block mt-2">
+                                    <i class="bi bi-hand-index-thumb"></i> Pro tip: Use prompts for consistent, repeatable
+                                    tasks
+                                </small>
+                            </div>
                         </div>
-                    }
 
-                    <div class="mb-4">
-                        <label for="prompt" class="form-label">
-                            <i class="bi bi-chat-dots-fill"></i> Enter Your Prompt
-                        </label>
-                        <textarea 
-                            class="form-control" 
-                            id="prompt" 
-                            name="prompt" 
-                            placeholder="Enter your prompt here... or select one from your saved prompts above"
-                            required>@Model?.Prompt</textarea>
-                        <small class="form-text text-muted d-block mt-2">
-                            <i class="bi bi-hand-index-thumb"></i> Pro tip: Use prompts for consistent, repeatable tasks
-                        </small>
-                    </div>
-
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end gap-3 mt-4">
-                        <button type="reset" class="btn btn-secondary btn-lg">
-                            <i class="bi bi-arrow-clockwise"></i> Clear
-                        </button>
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-send-fill"></i> Send Request
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-4">
-        <div class="card mb-4 sticky-lg-top" style="top: 80px;">
-            <div class="card-header">
-                <h5 class="card-title">
-                    <i class="bi bi-info-circle"></i> Tips
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <h6 class="fw-bold text-primary">
-                        <i class="bi bi-star-fill"></i> Best Practices
-                    </h6>
-                    <ul class="small mb-0">
-                        <li>Be specific and clear</li>
-                        <li>Provide context</li>
-                        <li>Include examples if helpful</li>
-                        <li>Format instructions well</li>
-                        <li>Save reusable prompts</li>
-                    </ul>
-                </div>
-                <hr>
-                <div>
-                    <h6 class="fw-bold text-success">
-                        <i class="bi bi-lightning-charge"></i> Quick Actions
-                    </h6>
-                    <div class="d-grid gap-2">
-                        <a href="@Url.Action("Index", "Prompts")" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-collection"></i> View Prompts
-                        </a>
-                        <a href="@Url.Action("Create", "Prompts")" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-plus-circle"></i> New Prompt
-                        </a>
-                    </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end gap-3 mt-4">
+                            <button type="reset" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-arrow-clockwise"></i> Clear
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-send-fill"></i> Send Request
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title">
-                    <i class="bi bi-gear"></i> Settings
-                </h5>
+        <div class="col-lg-4">
+            <div class="card mb-4 sticky-lg-top" style="top: 80px;">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="bi bi-info-circle"></i> Tips
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-primary">
+                            <i class="bi bi-star-fill"></i> Best Practices
+                        </h6>
+                        <ul class="small mb-0">
+                            <li>Be specific and clear</li>
+                            <li>Provide context</li>
+                            <li>Include examples if helpful</li>
+                            <li>Format instructions well</li>
+                            <li>Save reusable prompts</li>
+                        </ul>
+                    </div>
+                    <hr>
+                    <div>
+                        <h6 class="fw-bold text-success">
+                            <i class="bi bi-lightning-charge"></i> Quick Actions
+                        </h6>
+                        <div class="d-grid gap-2">
+                            <a href="@Url.Action("Index", "Prompts")" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-collection"></i> View Prompts
+                            </a>
+                            <a href="@Url.Action("Create", "Prompts")" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-plus-circle"></i> New Prompt
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body small">
-                <p class="mb-2">
-                    <strong>Model:</strong><br>
-                    <span class="badge badge-primary">llama3.1:8b</span>
-                </p>
-                <p class="mb-0">
-                    <strong>Endpoint:</strong><br>
-                    <code class="small">localhost:11434</code>
-                </p>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="bi bi-gear"></i> Settings
+                    </h5>
+                </div>
+                <div class="card-body small">
+                    <p class="mb-2">
+                        <strong>Model:</strong><br>
+                        <span class="badge badge-primary">llama3.1:8b</span>
+                    </p>
+                    <p class="mb-0">
+                        <strong>Endpoint:</strong><br>
+                        <code class="small">localhost:11434</code>
+                    </p>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-async function loadPromptContent() {
-    const select = document.getElementById('selectedPromptId');
-    const promptTextarea = document.getElementById('prompt');
-    const promptId = select.value;
+    <script>
+        async function loadPromptContent() {
+            const select = document.getElementById('selectedPromptId');
+            const promptTextarea = document.getElementById('prompt');
+            const promptId = select.value;
 
-    if (!promptId) {
-        return;
-    }
+            if (!promptId) {
+                return;
+            }
 
-    try {
-        const response = await fetch(`/Prompts/GetPrompt?id=${promptId}`);
-        const prompt = await response.json();
-        if (prompt && prompt.content) {
-            promptTextarea.value = prompt.content;
-            promptTextarea.focus();
-            // Scroll to textarea
-            promptTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            try {
+                const response = await fetch(`/Prompts/GetPrompt?id=${promptId}`);
+                const prompt = await response.json();
+                if (prompt && prompt.content) {
+                    promptTextarea.value = prompt.content;
+                    promptTextarea.focus();
+                    // Scroll to textarea
+                    promptTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            } catch (error) {
+                alert('Error loading prompt: ' + error);
+            }
         }
-    } catch (error) {
-        alert('Error loading prompt: ' + error);
-    }
-}
-</script>
-
+    </script>
