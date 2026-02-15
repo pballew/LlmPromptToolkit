@@ -5,22 +5,314 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Ollama Client</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUarbnLutan7V7McqwrlWQvrvayLesqA6Yty51rO5h5Z9QwIVN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        body { padding-top: 60px; }
-        .navbar { background-color: #2c3e50; }
-        .container-main { max-width: 1200px; }
-        .response-card { background-color: #f8f9fa; border-left: 4px solid #007bff; }
-        .timing-badge { margin-right: 10px; }
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #8b5cf6;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --border-color: #e5e7eb;
+            --bg-light: #f9fafb;
+        }
+
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            padding-top: 70px;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            color: #1f2937;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+            border-bottom: 3px solid var(--primary-dark);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 0 0.5rem;
+            border-radius: 0.375rem;
+            padding: 0.5rem 1rem !important;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .container-main {
+            max-width: 1200px;
+            flex: 1;
+        }
+
+        .main-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 2rem 0;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .main-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .main-header .icon {
+            font-size: 2.5rem;
+        }
+
+        .card {
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-color: var(--primary-color);
+        }
+
+        .card-header {
+            background: linear-gradient(90deg, var(--bg-light) 0%, #ffffff 100%);
+            border-bottom: 2px solid var(--border-color);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .card-title {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #6b7280;
+            border: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background-color: #4b5563;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-secondary {
+            border: 2px solid var(--border-color);
+            color: #6b7280;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--bg-light);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .form-control,
+        .form-select {
+            border: 1.5px solid var(--border-color);
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        textarea.form-control {
+            min-height: 150px;
+            resize: vertical;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+
+        .alert {
+            border: none;
+            border-radius: 0.75rem;
+            border-left: 4px solid;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .alert-info {
+            background-color: #f0f9ff;
+            color: #0369a1;
+            border-left-color: #0ea5e9;
+        }
+
+        .alert-danger {
+            background-color: #fef2f2;
+            color: #991b1b;
+            border-left-color: #ef4444;
+        }
+
+        .alert-success {
+            background-color: #f0fdf4;
+            color: #166534;
+            border-left-color: #22c55e;
+        }
+
+        .alert-warning {
+            background-color: #fffbeb;
+            color: #92400e;
+            border-left-color: #f59e0b;
+        }
+
+        .response-card {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #ffffff 0%, var(--bg-light) 100%);
+        }
+
+        .metric-card .metric-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-card .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .metric-card .metric-unit {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .badge {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .badge-primary {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        }
+
+        .table {
+            font-size: 0.95rem;
+        }
+
+        .table thead {
+            background-color: var(--bg-light);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--bg-light);
+        }
+
+        .btn-group-sm .btn {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        footer {
+            margin-top: auto;
+            background: linear-gradient(90deg, #ffffff 0%, var(--bg-light) 100%);
+            border-top: 1px solid var(--border-color);
+        }
+
+        footer small {
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .input-group {
+            gap: 0.5rem;
+        }
+
+        .input-group-text {
+            background-color: var(--bg-light);
+            border: 1.5px solid var(--border-color);
+            color: #6b7280;
+        }
+
+        @@media (max-width: 768px) {
+            body {
+                padding-top: 60px;
+            }
+
+            .main-header h1 {
+                font-size: 1.75rem;
+            }
+
+            .metric-card .metric-value {
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-dark fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="@Url.Action("Index", "Home")">Ollama Client</a>
+            <a class="navbar-brand" href="@Url.Action("Index", "Home")">
+                <i class="bi bi-lightning-fill"></i> Ollama Client
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="@Url.Action("Index", "Home")">Request Builder</a>
+                        <a class="nav-link" href="@Url.Action("Index", "Home")">
+                            <i class="bi bi-pencil-square"></i> Request Builder
+                        </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="@Url.Action("Index", "Prompts")">
@@ -32,10 +324,11 @@
         </div>
     </nav>
 
-    <div class="container container-main">
+    <div class="container-fluid container-main">
         @if (!string.IsNullOrEmpty((ViewData["Message"] as string)))
         {
             <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
                 @ViewData["Message"]
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -44,9 +337,9 @@
         @RenderBody()
     </div>
 
-    <footer class="text-center text-muted py-4 mt-5">
+    <footer class="text-center py-4 mt-5">
         <div class="container">
-            <small>&copy; 2026 Ollama Client | Connected to Ollama</small>
+            <small><i class="bi bi-check-circle-fill"></i> Connected to Ollama | &copy; 2026 Ollama Client</small>
         </div>
     </footer>
 
