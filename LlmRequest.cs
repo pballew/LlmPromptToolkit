@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Request model for Ollama API
 /// </summary>
-public class GenerateRequest
+public class LlmRequest
 {
     [JsonPropertyName("model")]
     public string Model { get; set; } = string.Empty;

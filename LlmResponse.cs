@@ -1,8 +1,10 @@
+using System;
 using System.Text.Json.Serialization;
+
 /// <summary>
 /// Response model for Ollama API
 /// </summary>
-public class GenerateResponse
+public class LlmResponse
 {
     [JsonPropertyName("model")]
     public string Model { get; set; } = string.Empty;
@@ -18,4 +20,14 @@ public class GenerateResponse
 
     [JsonPropertyName("context")]
     public int[] Context { get; set; } = [];
+
+    public void Print()
+    {
+        Console.WriteLine("LlmResponse");
+        Console.WriteLine($" - Model: {Model}");
+        Console.WriteLine($" - Created At: {CreatedAt}");
+        Console.WriteLine($" - Done: {Done}");
+        Console.WriteLine($" - Response:\n{Response}");
+        Console.WriteLine($" - Context count: {Context.Length}");
+    }
 }
