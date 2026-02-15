@@ -10,7 +10,7 @@
 </div>
 
 <div class="row">
-    <div class="col-lg-9">
+    <div class="col-lg-8">
         @if (!string.IsNullOrEmpty(Model?.ErrorMessage))
         {
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -26,7 +26,7 @@
                     <i class="bi bi-pencil-square"></i> Create Your Prompt
                 </h5>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <form method="post" action="@Url.Action("SendRequest", "Home")">
                     @if (Model?.AvailablePrompts != null && Model.AvailablePrompts.Count > 0)
                     {
@@ -67,7 +67,6 @@
                             class="form-control" 
                             id="prompt" 
                             name="prompt" 
-                            rows="10"
                             placeholder="Enter your prompt here... or select one from your saved prompts above"
                             required>@Model?.Prompt</textarea>
                         <small class="form-text text-muted d-block mt-2">
@@ -75,7 +74,7 @@
                         </small>
                     </div>
 
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end gap-3 mt-4">
                         <button type="reset" class="btn btn-secondary btn-lg">
                             <i class="bi bi-arrow-clockwise"></i> Clear
                         </button>
@@ -88,8 +87,8 @@
         </div>
     </div>
 
-    <div class="col-lg-3">
-        <div class="card mb-4">
+    <div class="col-lg-4">
+        <div class="card mb-4 sticky-lg-top" style="top: 80px;">
             <div class="card-header">
                 <h5 class="card-title">
                     <i class="bi bi-info-circle"></i> Tips
