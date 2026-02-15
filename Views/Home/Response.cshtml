@@ -1,0 +1,79 @@
+@model RequestResponseViewModel
+
+@{
+    ViewData["Title"] = "Response";
+}
+
+<div class="row mt-4">
+    <div class="col-md-10 offset-md-1">
+        <h1 class="mb-4">Response</h1>
+
+        <!-- Request Details -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Request</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text"><strong>Prompt:</strong></p>
+                <pre class="bg-light p-3 rounded" style="border-left: 4px solid #007bff;">@Model.Prompt</pre>
+            </div>
+        </div>
+
+        <!-- Timing & Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Response Time</h6>
+                        <h4 class="card-title">@Model.TimingMs<span style="font-size: 0.7em;"> ms</span></h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Context Tokens</h6>
+                        <h4 class="card-title">@Model.TokenCount<span style="font-size: 0.7em;"> tokens</span></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Response Content -->
+        <div class="card response-card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    Response
+                    <small class="text-muted">@Model.CreatedAt.ToString("g")</small>
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text"><strong>Model:</strong> @Model.Model</p>
+                <div class="bg-white p-3 border rounded">
+                    <pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">@Model.Response</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex gap-2 justify-content-between mb-4">
+            <a href="@Url.Action("Index", "Home")" class="btn btn-secondary btn-lg">
+                <span>← New Request</span>
+            </a>
+            <button class="btn btn-primary btn-lg" onclick="copyToClipboard()">
+                <span>Copy Response</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyToClipboard() {
+        const responseText = `@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Response))`;
+        navigator.clipboard.writeText(responseText).then(() => {
+            alert('Response copied to clipboard!');
+        }).catch(err => {
+            console.error('Could not copy text: ', err);
+        });
+    }
+</script>

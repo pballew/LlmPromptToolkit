@@ -1,35 +1,42 @@
 using System;
 using System.Threading.Tasks;
 
-class Program
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container
+builder.Services.AddControllersWithViews();
+
+// Register OllamaService with configuration from appsettings
+builder.Services.AddScoped<OllamaService>(sp =>
 {
-    static async Task Main(string[] args)
-    {
-        // Default Ollama server URL
-        string ollamaUrl = "http://localhost:11434";
-        string modelName = "llama3.1:8b";
-        string prompt;
-        PromptService _promptService = new PromptService();
+    var baseUrl = builder.Configuration["Ollama:BaseUrl"] ?? "http://localhost:11434";
+    var modelName = builder.Configuration["Ollama:DefaultModel"] ?? "llama3.1:8b";
+    return new OllamaService(baseUrl, modelName);
+});
 
-        var firstFile = args.Length > 0 ? args[0] : null;
-        var secondFile = args.Length > 1 ? args[1] : null;
+builder.Services.AddScoped<PromptService>();
 
-        if (firstFile == null)
-        {
-            Console.WriteLine("No prompt file specified.");
-            return;
-        }
+var app = builder.Build();
 
-        prompt = await _promptService.LoadPromptAsync(firstFile);
+// Configure URLs
+app.Urls.Add("http://localhost:5123");
+app.Urls.Add("https://localhost:5124");
 
-        var client = new OllamaService(ollamaUrl, modelName);
-        LlmResponse responseContext = await client.GetLlmResponseAsync(prompt);
-
-        if (!string.IsNullOrWhiteSpace(secondFile))
-        {
-            prompt = await _promptService.LoadPromptAsync(secondFile);
-            responseContext = await client.GetLlmResponseAsync(prompt, responseContext.Context);
-            responseContext.Print();
-        }
-    }
+// Configure the HTTP request pipeline
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
 }
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.Run();
+

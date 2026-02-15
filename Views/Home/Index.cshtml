@@ -1,0 +1,27 @@
+@{
+    ViewData["Title"] = "Request Builder";
+}
+
+<div class="row mt-4">
+    <div class="col-md-8 offset-md-2">
+        <h1 class="mb-4">Build Request</h1>
+
+        <form method="post" action="@Url.Action("SendRequest", "Home")">
+            <div class="mb-3">
+                <label for="prompt" class="form-label">Enter Your Prompt</label>
+                <textarea 
+                    class="form-control form-control-lg" 
+                    id="prompt" 
+                    name="prompt" 
+                    rows="8" 
+                    placeholder="Enter your prompt here..." 
+                    required></textarea>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="reset" class="btn btn-secondary btn-lg">Clear</button>
+                <button type="submit" class="btn btn-primary btn-lg">Send Request</button>
+            </div>
+        </form>
+    </div>
+</div>

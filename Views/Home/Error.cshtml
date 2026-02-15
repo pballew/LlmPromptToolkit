@@ -1,0 +1,21 @@
+@model ErrorViewModel
+
+@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="row mt-4">
+    <div class="col-md-8 offset-md-2">
+        <h1 class="text-danger">Error</h1>
+        <h2 class="text-danger">An error occurred while processing your request.</h2>
+
+        @if (Model?.ShowRequestId ?? false)
+        {
+            <p>
+                <strong>Request ID:</strong> <code>@Model.RequestId</code>
+            </p>
+        }
+
+        <a href="@Url.Action("Index", "Home")" class="btn btn-primary mt-3">← Go Home</a>
+    </div>
+</div>
