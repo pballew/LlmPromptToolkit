@@ -41,7 +41,7 @@ namespace LlmPromptToolkit.Controllers
         /// POST: Create a new prompt
         /// </summary>
         [HttpPost]
-        public async Task<IActionResult> Create(Prompt prompt, [FromForm] string RequiredFieldsInput)
+        public async Task<IActionResult> Create(Prompt prompt, [FromForm] string? RequiredFieldsInput)
         {
             if (!ModelState.IsValid)
             {
@@ -91,7 +91,7 @@ namespace LlmPromptToolkit.Controllers
         /// POST: Update an existing prompt
         /// </summary>
         [HttpPost]
-        public async Task<IActionResult> Edit(Prompt prompt, [FromForm] string RequiredFieldsInput)
+        public async Task<IActionResult> Edit(Prompt prompt, [FromForm] string? RequiredFieldsInput)
         {
             if (!ModelState.IsValid)
             {
