@@ -145,11 +145,31 @@
         sendBtn.disabled = true;
 
         try {
+            // Add request to conversation history immediately (before sending)
+            const newRequestIndex = conversationHistory.length;
+            conversationHistory.push({
+                prompt: promptText,
+                response: '', // Will be filled in when response arrives
+                timing_ms: 0,
+                context: null,
+                isLoading: true
+            });
+
+            // Update UI to show the prompt immediately
+            displayConversation();
+            document.getElementById('promptTextarea').value = '';
+            
+            // Auto-scroll to bottom
+            setTimeout(() => {
+                const historyContainer = document.getElementById('conversationHistory');
+                historyContainer.scrollTop = historyContainer.scrollHeight;
+            }, 100);
+
             const startTime = Date.now();
             
-            // Get context from the last request if available
-            const lastContext = conversationHistory.length > 0 
-                ? conversationHistory[conversationHistory.length - 1].context 
+            // Get context from the previous request if available
+            const lastContext = conversationHistory.length > 1 
+                ? conversationHistory[conversationHistory.length - 2].context 
                 : null;
             
             const requestBody = { 
@@ -179,17 +199,14 @@
 
             const data = await response.json();
             
-            // Add to conversation history with context tokens
-            conversationHistory.push({
-                prompt: promptText,
-                response: data.response,
-                timing_ms: timing,
-                context: data.context
-            });
+            // Update the request with the response
+            conversationHistory[newRequestIndex].response = data.response;
+            conversationHistory[newRequestIndex].timing_ms = timing;
+            conversationHistory[newRequestIndex].context = data.context;
+            conversationHistory[newRequestIndex].isLoading = false;
 
-            // Update UI
+            // Update UI with the response
             displayConversation();
-            document.getElementById('promptTextarea').value = '';
             
             // Auto-scroll to bottom
             setTimeout(() => {
@@ -227,14 +244,28 @@
             // Response bubble
             const responseDiv = document.createElement('div');
             responseDiv.className = 'mb-3';
-            responseDiv.innerHTML = `
-                <div class="bg-light rounded p-3" style="margin-right: 20%; border: 1px solid #ddd; word-wrap: break-word;">
-                    <small class="d-block mb-2 text-muted">
-                        <i class="bi bi-robot"></i> Assistant (${item.timing_ms}ms)
-                    </small>
-                    <div>${escapeHtml(item.response)}</div>
-                </div>
-            `;
+            
+            if (item.isLoading) {
+                responseDiv.innerHTML = `
+                    <div class="bg-light rounded p-3" style="margin-right: 20%; border: 1px solid #ddd;">
+                        <small class="d-block mb-2 text-muted">
+                            <i class="bi bi-robot"></i> Assistant
+                        </small>
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                responseDiv.innerHTML = `
+                    <div class="bg-light rounded p-3" style="margin-right: 20%; border: 1px solid #ddd; word-wrap: break-word;">
+                        <small class="d-block mb-2 text-muted">
+                            <i class="bi bi-robot"></i> Assistant (${item.timing_ms}ms)
+                        </small>
+                        <div>${escapeHtml(item.response)}</div>
+                    </div>
+                `;
+            }
             container.appendChild(responseDiv);
         });
     }
