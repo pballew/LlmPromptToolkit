@@ -73,6 +73,10 @@ public class HomeController : Controller
             }
 
             var startTime = DateTime.Now;
+            
+            // Ensure the model is loaded before sending the request
+            await _ollamaService.EnsureModelIsLoadedAsync(_ollamaService.GetModelName());
+            
             var response = await _ollamaService.GetLlmResponseAsync(prompt);
             var endTime = DateTime.Now;
             var elapsed = endTime - startTime;

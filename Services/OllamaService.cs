@@ -27,6 +27,93 @@ public class OllamaService
         _httpClient = new HttpClient();
     }
 
+    /// <summary>
+    /// Gets the current model name
+    /// </summary>
+    public string GetModelName() => _modelName;
+
+    /// <summary>
+    /// Checks if the specified model is loaded and running
+    /// </summary>
+    public async Task<bool> IsModelLoadedAsync(string modelName)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"{_baseUrl}/api/tags");
+            if (!response.IsSuccessStatusCode)
+                return false;
+
+            string tagsJson = await response.Content.ReadAsStringAsync();
+            using JsonDocument doc = JsonDocument.Parse(tagsJson);
+            var root = doc.RootElement;
+
+            if (root.TryGetProperty("models", out var modelsArray))
+            {
+                foreach (var model in modelsArray.EnumerateArray())
+                {
+                    if (model.TryGetProperty("name", out var nameElement))
+                    {
+                        string name = nameElement.GetString() ?? string.Empty;
+                        if (name.StartsWith(modelName))
+                            return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error checking if model is loaded: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Pulls and loads the specified model
+    /// </summary>
+    public async Task<bool> PullModelAsync(string modelName)
+    {
+        try
+        {
+            Console.WriteLine($"Pulling model: {modelName}...");
+
+            var request = new { name = modelName };
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync($"{_baseUrl}/api/pull", content);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Model {modelName} successfully loaded");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"Failed to pull model: {response.StatusCode}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error pulling model: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Ensures the model is loaded before generating a response
+    /// </summary>
+    public async Task EnsureModelIsLoadedAsync(string modelName)
+    {
+        if (!await IsModelLoadedAsync(modelName))
+        {
+            Console.WriteLine($"Model {modelName} is not loaded. Attempting to pull it...");
+            await PullModelAsync(modelName);
+        }
+    }
+
     public async Task<LlmResponse> GetLlmResponseAsync(string prompt, int[]? context = null)
     {
         var startTime = DateTime.Now;
