@@ -9,10 +9,10 @@
     <h1><i class="bi bi-chat-dots-fill icon"></i> Communications</h1>
 </div>
 
-<div class="container-fluid" style="height: calc(100vh - 120px);">
-    <div class="row" style="height: 100%;">
+<div class="container-fluid" style="position: relative; height: calc(100vh - 120px);">
+    <div style="height: 100%; margin-right: calc(33.333% + 30px);">
         <!-- Conversation Area -->
-        <div class="col-lg-8" style="display: flex; flex-direction: column; height: 100%; padding: 15px;">
+        <div style="display: flex; flex-direction: column; height: 100%; padding: 15px;">
             @if (!string.IsNullOrEmpty(Model?.ErrorMessage))
             {
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -81,23 +81,23 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Log Window (Side Panel) -->
-        <div class="col-lg-4" style="display: flex; flex-direction: column; height: 100%; padding: 15px;">
-            <div class="card" style="flex: 1; display: flex; flex-direction: column;">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-terminal"></i> Communication Log
-                    </h5>
-                </div>
-                <div id="logContent" class="card-body" style="flex: 1; overflow-y: auto; font-family: monospace; font-size: 0.85rem;">
-                    <!-- Logs will be displayed here -->
-                </div>
-                <div class="card-footer">
-                    <button class="btn btn-sm btn-outline-secondary w-100" onclick="clearLogs()">
-                        <i class="bi bi-trash"></i> Clear Logs
-                    </button>
-                </div>
+    <!-- Log Window (Floating Right Panel) -->
+    <div style="position: fixed; right: 15px; top: 120px; width: calc(33.333% - 30px); height: calc(100vh - 150px); display: flex; flex-direction: column; padding: 0;">
+        <div class="card" style="flex: 1; display: flex; flex-direction: column; margin: 0;">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-terminal"></i> Communication Log
+                </h5>
+            </div>
+            <div id="logContent" class="card-body" style="flex: 1; overflow-y: auto; font-family: monospace; font-size: 0.85rem;">
+                <!-- Logs will be displayed here -->
+            </div>
+            <div class="card-footer">
+                <button class="btn btn-sm btn-outline-secondary w-100" onclick="clearLogs()">
+                    <i class="bi bi-trash"></i> Clear Logs
+                </button>
             </div>
         </div>
     </div>
