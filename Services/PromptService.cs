@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using OllamaClient.Models;
+using LlmPromptToolkit.Models;
 
 /// <summary>
 /// Service for loading and saving prompt files

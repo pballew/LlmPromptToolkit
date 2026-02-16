@@ -1,21 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
-using OllamaClient.Models;
+using LlmPromptToolkit.Models;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace OllamaClient.Controllers;
+namespace LlmPromptToolkit.Controllers;
 
 public class HomeController : Controller
 {
     private readonly OllamaService _ollamaService;
     private readonly PromptService _promptService;
+    private readonly JsonValidationService _validationService;
     private readonly ILogger<HomeController> _logger;
 
-    public HomeController(OllamaService ollamaService, PromptService promptService, ILogger<HomeController> logger)
+    public HomeController(OllamaService ollamaService, PromptService promptService, JsonValidationService validationService, ILogger<HomeController> logger)
     {
         _ollamaService = ollamaService;
         _promptService = promptService;
+        _validationService = validationService;
         _logger = logger;
     }
 
@@ -42,12 +44,13 @@ public class HomeController : Controller
     {
         try
         {
+            Prompt? selectedPrompt = null;
             // If a prompt was selected from the dropdown, use it instead
             if (!string.IsNullOrWhiteSpace(selectedPromptId))
             {
                 try
                 {
-                    var selectedPrompt = await _promptService.GetPromptAsync(selectedPromptId);
+                    selectedPrompt = await _promptService.GetPromptAsync(selectedPromptId);
                     prompt = selectedPrompt.Content;
                 }
                 catch (Exception ex)
@@ -74,6 +77,10 @@ public class HomeController : Controller
             var endTime = DateTime.Now;
             var elapsed = endTime - startTime;
 
+            // Validate the response
+            var requiredFields = selectedPrompt?.RequiredFields ?? new();
+            var validationResult = await _validationService.ValidateResponseAsync(response.Response, requiredFields);
+
             var responseViewModel = new RequestResponseViewModel
             {
                 Prompt = prompt,
@@ -81,7 +88,8 @@ public class HomeController : Controller
                 Model = response.Model,
                 TimingMs = (int)elapsed.TotalMilliseconds,
                 TokenCount = response.Context?.Length ?? 0,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.Now,
+                ValidationResult = validationResult
             };
 
             return View("Response", responseViewModel);

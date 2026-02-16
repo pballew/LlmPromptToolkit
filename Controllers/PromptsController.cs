@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using OllamaClient.Models;
+using LlmPromptToolkit.Models;
 
-namespace OllamaClient.Controllers
+namespace LlmPromptToolkit.Controllers
 {
     /// <summary>
     /// Controller for managing stored prompts
@@ -41,7 +41,7 @@ namespace OllamaClient.Controllers
         /// POST: Create a new prompt
         /// </summary>
         [HttpPost]
-        public async Task<IActionResult> Create(Prompt prompt)
+        public async Task<IActionResult> Create(Prompt prompt, [FromForm] string RequiredFieldsInput)
         {
             if (!ModelState.IsValid)
             {
@@ -50,6 +50,15 @@ namespace OllamaClient.Controllers
 
             try
             {
+                // Parse required fields from comma-separated input
+                if (!string.IsNullOrWhiteSpace(RequiredFieldsInput))
+                {
+                    prompt.RequiredFields = new List<string>(RequiredFieldsInput
+                        .Split(',')
+                        .Select(f => f.Trim())
+                        .Where(f => !string.IsNullOrEmpty(f)));
+                }
+
                 await _promptService.SavePromptAsync(prompt);
                 return RedirectToAction("Index");
             }
@@ -82,7 +91,7 @@ namespace OllamaClient.Controllers
         /// POST: Update an existing prompt
         /// </summary>
         [HttpPost]
-        public async Task<IActionResult> Edit(Prompt prompt)
+        public async Task<IActionResult> Edit(Prompt prompt, [FromForm] string RequiredFieldsInput)
         {
             if (!ModelState.IsValid)
             {
@@ -91,6 +100,15 @@ namespace OllamaClient.Controllers
 
             try
             {
+                // Parse required fields from comma-separated input
+                if (!string.IsNullOrWhiteSpace(RequiredFieldsInput))
+                {
+                    prompt.RequiredFields = new List<string>(RequiredFieldsInput
+                        .Split(',')
+                        .Select(f => f.Trim())
+                        .Where(f => !string.IsNullOrEmpty(f)));
+                }
+
                 await _promptService.SavePromptAsync(prompt);
                 return RedirectToAction("Index");
             }

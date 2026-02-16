@@ -1,4 +1,4 @@
-@using OllamaClient.Models
+@using LlmPromptToolkit.Models
 @model Prompt
 
 @{
@@ -69,6 +69,18 @@
                                   rows="18" placeholder="Enter your prompt here..."
                                   required>@Model?.Content</textarea>
                         <small class="form-text text-muted d-block mt-2">The complete prompt that will be sent to Ollama</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="RequiredFieldsInput" class="form-label">
+                            <i class="bi bi-check2-square"></i> Required Response Fields (Optional)
+                        </label>
+                        <input type="text" class="form-control" id="RequiredFieldsInput" name="RequiredFieldsInput" 
+                               placeholder="e.g., name, email, age (comma-separated)" 
+                               value="@(Model?.RequiredFields != null ? string.Join(", ", Model.RequiredFields) : "")" />
+                        <small class="form-text text-muted d-block mt-2">
+                            Comma-separated field names that responses should contain. The validator will check if these fields are present in JSON responses.
+                        </small>
                     </div>
 
                     <div class="d-flex gap-2">

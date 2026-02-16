@@ -50,6 +50,9 @@
             </div>
         </div>
 
+        <!-- Validation Results -->
+        @await Html.PartialAsync("_ValidationResultsPanel", Model.ValidationResult)
+
         <!-- Response Content -->
         <div class="card response-card mb-4">
             <div class="card-header">

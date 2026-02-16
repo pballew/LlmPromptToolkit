@@ -1,6 +1,7 @@
 using System;
+using System.Collections.Generic;
 
-namespace OllamaClient.Models
+namespace LlmPromptToolkit.Models
 {
     /// <summary>
     /// Represents a stored prompt with metadata
@@ -31,6 +32,11 @@ namespace OllamaClient.Models
         /// When the prompt was last updated
         /// </summary>
         public DateTime UpdatedAt { get; set; }
+
+        /// <summary>
+        /// Required fields that should be present in the response JSON
+        /// </summary>
+        public List<string> RequiredFields { get; set; } = new();
 
         public Prompt()
         {

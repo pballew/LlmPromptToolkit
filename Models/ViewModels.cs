@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace OllamaClient.Models;
+namespace LlmPromptToolkit.Models;
 
 public class HomeIndexViewModel
 {
@@ -19,6 +19,7 @@ public class RequestResponseViewModel
     public int TimingMs { get; set; }
     public int TokenCount { get; set; }
     public DateTime CreatedAt { get; set; }
+    public ValidationResult ValidationResult { get; set; } = new();
 }
 
 public class ErrorViewModel

@@ -1,4 +1,4 @@
-# OllamaClient Web App Development Roadmap
+# LlmPromptToolkit Web App Development Roadmap
 
 ## Phase 1: Basic Web App with Single Request
 Convert console app to ASP.NET Core MVC web app with simple prompt submission and response display.

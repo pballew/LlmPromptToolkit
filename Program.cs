@@ -15,6 +15,7 @@ builder.Services.AddScoped<OllamaService>(sp =>
 });
 
 builder.Services.AddScoped<PromptService>();
+builder.Services.AddScoped<JsonValidationService>();
 
 var app = builder.Build();
 

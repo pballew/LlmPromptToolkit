@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Represents a quest JSON schema for a medieval fantasy RPG
 /// </summary>
-public class QuestAdapter
+public class QuestResponse
 {
     [JsonPropertyName("title")]
     public string Title { get; set; } = string.Empty;
