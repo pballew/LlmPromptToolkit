@@ -21,7 +21,26 @@ public class RequestResponseViewModel
     public DateTime CreatedAt { get; set; }
     public ValidationResult ValidationResult { get; set; } = new();
 }
+public class CommsRequestModel
+{
+    public string Prompt { get; set; } = string.Empty;
+    public string Response { get; set; } = string.Empty;
+    public int TimingMs { get; set; }
+}
 
+public class CommsRequestPayload
+{
+    public string Prompt { get; set; } = string.Empty;
+}
+
+public class CommsViewModel
+{
+    public List<Prompt> AvailablePrompts { get; set; } = new();
+    public string CurrentPromptText { get; set; } = string.Empty;
+    public List<CommsRequestModel> ConversationHistory { get; set; } = new();
+    public string? SelectedPromptId { get; set; }
+    public string ErrorMessage { get; set; } = string.Empty;
+}
 public class ErrorViewModel
 {
     public string? RequestId { get; set; }

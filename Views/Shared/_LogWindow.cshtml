@@ -1,0 +1,120 @@
+<!-- Log Window Partial View -->
+<div class="log-window" id="logWindow">
+    <div class="log-window-header">
+        <h6><i class="bi bi-terminal"></i> LLM Communication Log</h6>
+        <button id="logWindowClose" class="log-window-close" title="Close log">✕</button>
+    </div>
+    <div id="logContent" class="log-content"></div>
+    <div class="log-window-footer">
+        <button id="clearLogsBtn" class="log-window-button">
+            <i class="bi bi-trash"></i> Clear
+        </button>
+    </div>
+</div>
+
+<button id="logToggle" class="log-toggle-btn" onclick="toggleLogWindow()" title="Toggle log window">
+    <i class="bi bi-terminal"></i>
+</button>
+
+<script>
+    let lastLogCount = 0;
+    let logPollingInterval = null;
+
+    // Log Window Functions
+    function toggleLogWindow() {
+        const logWindow = document.getElementById('logWindow');
+        logWindow.classList.toggle('show');
+        
+        if (logWindow.classList.contains('show')) {
+            startLogPolling();
+        } else {
+            stopLogPolling();
+        }
+    }
+
+    async function fetchLogs() {
+        try {
+            const response = await fetch('/Home/GetLogs');
+            const logs = await response.json();
+            updateLogDisplay(logs);
+        } catch (error) {
+            console.error('Error fetching logs:', error);
+        }
+    }
+
+    function updateLogDisplay(logs) {
+        const logContent = document.getElementById('logContent');
+        
+        // Only update if there are new logs
+        if (logs.length > lastLogCount) {
+            logContent.innerHTML = '';
+            logs.forEach(log => {
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${log.level}`;
+                
+                const timestamp = new Date(log.timestamp).toLocaleTimeString();
+                
+                logEntry.innerHTML = `
+                    <span class="log-timestamp">${timestamp}</span>
+                    <span class="log-level ${log.level}">${log.level}</span>
+                    <span class="log-message">${escapeHtml(log.message)}</span>
+                `;
+                
+                logContent.appendChild(logEntry);
+            });
+            
+            // Auto-scroll to bottom
+            logContent.scrollTop = logContent.scrollHeight;
+            lastLogCount = logs.length;
+        }
+    }
+
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function startLogPolling() {
+        if (!logPollingInterval) {
+            fetchLogs(); // Initial fetch
+            logPollingInterval = setInterval(fetchLogs, 500); // Poll every 500ms
+        }
+    }
+
+    function stopLogPolling() {
+        if (logPollingInterval) {
+            clearInterval(logPollingInterval);
+            logPollingInterval = null;
+        }
+    }
+
+    function clearLogs() {
+        document.getElementById('logContent').innerHTML = '';
+        lastLogCount = 0;
+    }
+
+    // Initialize log window on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Close log window by default
+        const logWindow = document.getElementById('logWindow');
+        logWindow.classList.remove('show');
+        
+        // Add event listener to close button
+        const closeBtn = document.getElementById('logWindowClose');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', toggleLogWindow);
+        }
+        
+        // Add event listeners to footer buttons
+        const clearBtn = document.getElementById('clearLogsBtn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', clearLogs);
+        }
+    });
+</script>

@@ -2,11 +2,11 @@
 @model HomeIndexViewModel
 
 @{
-    ViewData["Title"] = "Request Builder";
+    ViewData["Title"] = "Home";
 }
 
 <div class="main-header">
-    <h1><i class="bi bi-pencil-fill icon"></i> Request Builder</h1>
+    <h1><i class="bi bi-house-fill icon"></i> Home</h1>
 </div>
 
 <div class="container">
@@ -24,77 +24,155 @@
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="card-title">
-                        <i class="bi bi-pencil-square"></i> Create Your Prompt
+                        <i class="bi bi-pencil-square"></i> Manage Your Prompts
                     </h5>
                 </div>
                 <div class="card-body p-4">
-                    <form method="post" action="@Url.Action("SendRequest", "Home")">
-                        @if (Model?.AvailablePrompts != null && Model.AvailablePrompts.Count > 0)
-                        {
-                            <div class="mb-4">
-                                <label for="selectedPromptId" class="form-label">
-                                    <i class="bi bi-bookmark-fill"></i> Select a Saved Prompt
-                                </label>
-                                <div class="input-group input-group-lg">
-                                    <select class="form-select" id="selectedPromptId" name="selectedPromptId"
-                                            onchange="loadPromptContent()" style="max-width: 100%;">
-                                        <option value="">-- Choose a prompt --</option>
-                                        @foreach (var p in Model.AvailablePrompts)
-                                        {
-                                            <option value="@p.Id">@p.Name</option>
-                                        }
-                                    </select>
-                                    <a href="@Url.Action("Index", "Prompts")" class="btn btn-outline-secondary"
-                                        title="Manage saved prompts">
-                                        <i class="bi bi-gear"></i> Manage
-                                    </a>
-                                </div>
-                                <small class="form-text text-muted d-block mt-2">
-                                    <i class="bi bi-info-circle"></i> Or <a href="@Url.Action("Create", "Prompts")">create a new
-                                    prompt</a>
-                                </small>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="alert alert-info mb-4">
-                                <i class="bi bi-lightbulb-fill"></i>
-                                <p class="mb-1"><strong>No saved prompts yet.</strong> <a
-                                    href="@Url.Action("Create", "Prompts")" class="alert-link">Create one now</a> to quickly
-                                    load prompts into the builder.</p>
-                            </div>
-                        }
-
-                        <div class="d-flex flex-column mb-3">
-                            <div>
-                                <label for="prompt" class="form-label">
-                                    <i class="bi bi-chat-dots-fill"></i> Enter Your Prompt
-                                </label>
-                            </div>
-
-                            <div style="width: 100%;">
-                                <textarea class="form-control" id="prompt" name="prompt" style="width: 100%;"
-                                            placeholder="Enter your prompt here... or select one from your saved prompts above"
-                                            required>@Model?.Prompt</textarea>
-                            </div>
-
-                            <div>
-                                <small class="form-text text-muted d-block mt-2">
-                                    <i class="bi bi-hand-index-thumb"></i> Pro tip: Use prompts for consistent, repeatable
-                                    tasks
-                                </small>
-                            </div>
+                    @if (Model?.AvailablePrompts != null && Model.AvailablePrompts.Count > 0)
+                    {
+                        <p class="mb-3">You have <strong>@Model.AvailablePrompts.Count</strong> saved prompt(s).</p>
+                        <div class="list-group">
+                            @foreach (var p in Model.AvailablePrompts)
+                            {
+                                <a href="@Url.Action("Edit", "Prompts", new { id = p.Id })" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1"><i class="bi bi-bookmark-fill"></i> @p.Name</h6>
+                                        <small class="text-muted">@p.UpdatedAt.ToString("MMM d, yyyy")</small>
+                                    </div>
+                                    <p class="mb-1 text-truncate">@p.Content</p>
+                                </a>
+                            }
                         </div>
-
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end gap-3 mt-4">
-                            <button type="reset" class="btn btn-secondary btn-lg">
-                                <i class="bi bi-arrow-clockwise"></i> Clear
-                            </button>
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-send-fill"></i> Send Request
-                            </button>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-lightbulb-fill"></i>
+                            <p class="mb-1"><strong>No saved prompts yet.</strong> <a
+                                href="@Url.Action("Create", "Prompts")" class="alert-link">Create one now</a> to get started.</p>
                         </div>
-                    </form>
+                    }
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end gap-3 mt-4">
+                        <a href="@Url.Action("Create", "Prompts")" class="btn btn-primary btn-lg">
+                            <i class="bi bi-plus-circle-fill"></i> Create New Prompt
+                        </a>
+                        <a href="@Url.Action("Comms", "Home")" class="btn btn-success btn-lg">
+                            <i class="bi bi-chat-dots-fill"></i> Go to Communications
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4 sticky-lg-top" style="top: 80px;">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="bi bi-info-circle"></i> Quick Start
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-primary">
+                            <i class="bi bi-star-fill"></i> Getting Started
+                        </h6>
+                        <ul class="small mb-0">
+                            <li><a href="@Url.Action("Create", "Prompts")">Create a new prompt</a></li>
+                            <li><a href="@Url.Action("Comms", "Home")">Go to Communications</a> to send prompts</li>
+                            <li>View your prompt history</li>
+                            <li>Monitor the communication log</li>
+                        </ul>
+                    </div>
+                    <hr>
+                    <div>
+                        <h6 class="fw-bold text-success">
+                            <i class="bi bi-lightning-charge"></i> Quick Actions
+                        </h6>
+                        <div class="d-grid gap-2">
+                            <a href="@Url.Action("Create", "Prompts")" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-plus-circle"></i> New Prompt
+                            </a>
+                            <a href="@Url.Action("Comms", "Home")" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-chat-dots-fill"></i> Communications
+                            </a>
+                            <a href="@Url.Action("Index", "Prompts")" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-collection"></i> Manage Prompts
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="bi bi-gear"></i> Settings
+                    </h5>
+                </div>
+                <div class="card-body small">
+                    <p class="mb-2">
+                        <strong>Model:</strong><br>
+                        <span class="badge badge-primary">llama3.1:8b</span>
+                    </p>
+                    <p class="mb-0">
+                        <strong>Endpoint:</strong><br>
+                        <code class="small">localhost:11434</code>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+            @if (!string.IsNullOrEmpty(Model?.ErrorMessage))
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    <strong>Error:</strong> @Model.ErrorMessage
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="bi bi-pencil-square"></i> Manage Your Prompts
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (Model?.AvailablePrompts != null && Model.AvailablePrompts.Count > 0)
+                    {
+                        <p class="mb-3">You have <strong>@Model.AvailablePrompts.Count</strong> saved prompt(s).</p>
+                        <div class="list-group">
+                            @foreach (var p in Model.AvailablePrompts)
+                            {
+                                <a href="@Url.Action("Edit", "Prompts", new { id = p.Id })" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1"><i class="bi bi-bookmark-fill"></i> @p.Name</h6>
+                                        <small class="text-muted">@p.UpdatedAt.ToString("MMM d, yyyy")</small>
+                                    </div>
+                                    <p class="mb-1 text-truncate">@p.Content</p>
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-lightbulb-fill"></i>
+                            <p class="mb-1"><strong>No saved prompts yet.</strong> <a
+                                href="@Url.Action("Create", "Prompts")" class="alert-link">Create one now</a> to get started.</p>
+                        </div>
+                    }
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end gap-3 mt-4">
+                        <a href="@Url.Action("Create", "Prompts")" class="btn btn-primary btn-lg">
+                            <i class="bi bi-plus-circle-fill"></i> Create New Prompt
+                        </a>
+                        <a href="@Url.Action("Comms", "Home")" class="btn btn-success btn-lg">
+                            <i class="bi bi-chat-dots-fill"></i> Go to Communications
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -155,151 +233,4 @@
             </div>
         </div>
     </div>
-
-    <div class="row">
-        <div class=col-lg-12>
-            <div id="logWindow" class="log-window">
-                <div class="log-window-header">
-                    <h6><i class="bi bi-terminal"></i> LLM Communication Log</h6>
-                    <button id="logWindowClose" class="log-window-close" title="Close log">✕</button>
-                </div>
-                <div id="logContent" class="log-content"></div>
-                <div class="log-window-footer">
-                    <button id="clearLogsBtn" class="log-window-button">
-                        <i class="bi bi-trash"></i> Clear
-                    </button>
-                </div>
-            </div>
-
-            <button id="logToggle" class="log-toggle-btn" onclick="toggleLogWindow()" title="Toggle log window">
-                <i class="bi bi-terminal"></i>
-            </button>
-        </div>
-    <div>
-<div>
-
-<script>
-    let lastLogCount = 0;
-    let logPollingInterval = null;
-
-    async function loadPromptContent() {
-        const select = document.getElementById('selectedPromptId');
-        const promptTextarea = document.getElementById('prompt');
-        const promptId = select.value;
-
-        if (!promptId) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`/Prompts/GetPrompt?id=${promptId}`);
-            const prompt = await response.json();
-            if (prompt && prompt.content) {
-                promptTextarea.value = prompt.content;
-                promptTextarea.focus();
-                // Scroll to textarea
-                promptTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        } catch (error) {
-            alert('Error loading prompt: ' + error);
-        }
-    }
-
-    // Log Window Functions
-    function toggleLogWindow() {
-        const logWindow = document.getElementById('logWindow');
-        logWindow.classList.toggle('show');
-        
-        if (logWindow.classList.contains('show')) {
-            startLogPolling();
-        } else {
-            stopLogPolling();
-        }
-    }
-
-    async function fetchLogs() {
-        try {
-            const response = await fetch('/Home/GetLogs');
-            const logs = await response.json();
-            updateLogDisplay(logs);
-        } catch (error) {
-            console.error('Error fetching logs:', error);
-        }
-    }
-
-    function updateLogDisplay(logs) {
-        const logContent = document.getElementById('logContent');
-        
-        // Only update if there are new logs
-        if (logs.length > lastLogCount) {
-            logContent.innerHTML = '';
-            logs.forEach(log => {
-                const logEntry = document.createElement('div');
-                logEntry.className = `log-entry ${log.level}`;
-                
-                const timestamp = new Date(log.timestamp).toLocaleTimeString();
-                
-                logEntry.innerHTML = `
-                    <span class="log-timestamp">${timestamp}</span>
-                    <span class="log-level ${log.level}">${log.level}</span>
-                    <span class="log-message">${escapeHtml(log.message)}</span>
-                `;
-                
-                logContent.appendChild(logEntry);
-            });
-            
-            // Auto-scroll to bottom
-            logContent.scrollTop = logContent.scrollHeight;
-            lastLogCount = logs.length;
-        }
-    }
-
-    function escapeHtml(text) {
-        const map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, m => map[m]);
-    }
-
-    function startLogPolling() {
-        if (!logPollingInterval) {
-            fetchLogs(); // Initial fetch
-            logPollingInterval = setInterval(fetchLogs, 500); // Poll every 500ms
-        }
-    }
-
-    function stopLogPolling() {
-        if (logPollingInterval) {
-            clearInterval(logPollingInterval);
-            logPollingInterval = null;
-        }
-    }
-
-    function clearLogs() {
-        document.getElementById('logContent').innerHTML = '';
-        lastLogCount = 0;
-    }
-
-    // Initialize log window on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        // Close log window by default
-        const logWindow = document.getElementById('logWindow');
-        logWindow.classList.remove('show');
-        
-        // Add event listener to close button
-        const closeBtn = document.getElementById('logWindowClose');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', toggleLogWindow);
-        }
-        
-        // Add event listeners to footer buttons
-        const clearBtn = document.getElementById('clearLogsBtn');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', clearLogs);
-        }
-    });
-</script>
+</div>

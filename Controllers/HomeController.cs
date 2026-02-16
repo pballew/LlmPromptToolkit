@@ -43,6 +43,26 @@ public class HomeController : Controller
         }
     }
 
+    public async Task<IActionResult> Comms()
+    {
+        try
+        {
+            _loggingService.Log("💬 Comms page loaded", "INFO");
+            var prompts = await _promptService.GetAllPromptsAsync();
+            var viewModel = new CommsViewModel
+            {
+                AvailablePrompts = prompts
+            };
+            return View(viewModel);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading prompts");
+            _loggingService.Log($"Error loading prompts: {ex.Message}", "ERROR");
+            return View(new CommsViewModel { ErrorMessage = "Failed to load prompts" });
+        }
+    }
+
     [HttpPost]
     public async Task<IActionResult> SendRequest([FromForm] string prompt, [FromForm] string? selectedPromptId)
     {
@@ -114,6 +134,40 @@ public class HomeController : Controller
                 ErrorMessage = ex.Message
             };
             return View("Index", viewModel);
+        }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SendCommsRequest([FromBody] CommsRequestPayload payload)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(payload.Prompt))
+            {
+                return BadRequest(new { error = "Prompt is required" });
+            }
+
+            var startTime = DateTime.Now;
+            
+            // Ensure the model is loaded before sending the request
+            await _ollamaService.EnsureModelIsLoadedAsync(_ollamaService.GetModelName());
+            
+            var response = await _ollamaService.GetLlmResponseAsync(payload.Prompt);
+            var endTime = DateTime.Now;
+            var elapsed = endTime - startTime;
+
+            return Ok(new
+            {
+                response = response.Response,
+                timing_ms = (int)elapsed.TotalMilliseconds,
+                model = response.Model
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending comms request");
+            _loggingService.Log($"Error: {ex.Message}", "ERROR");
+            return BadRequest(new { error = ex.Message });
         }
     }
 

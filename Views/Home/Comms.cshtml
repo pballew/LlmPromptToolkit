@@ -1,0 +1,358 @@
+@using LlmPromptToolkit.Models
+@model CommsViewModel
+
+@{
+    ViewData["Title"] = "Comms";
+}
+
+<div class="main-header">
+    <h1><i class="bi bi-chat-dots-fill icon"></i> Communications</h1>
+</div>
+
+<div class="container-fluid" style="height: calc(100vh - 120px);">
+    <div class="row" style="height: 100%;">
+        <!-- Conversation Area -->
+        <div class="col-lg-8" style="display: flex; flex-direction: column; height: 100%; padding: 15px;">
+            @if (!string.IsNullOrEmpty(Model?.ErrorMessage))
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    <strong>Error:</strong> @Model.ErrorMessage
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <!-- Conversation History Container -->
+            <div id="conversationHistory" style="flex: 1; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; background-color: #f9f9f9;">
+                <!-- Conversation items will be added here dynamically -->
+            </div>
+
+            <!-- Prompt Input Section -->
+            <div class="card">
+                <div class="card-body p-4">
+                    @if (Model?.AvailablePrompts != null && Model.AvailablePrompts.Count > 0)
+                    {
+                        <div class="mb-4">
+                            <label for="promptDropdown" class="form-label">
+                                <i class="bi bi-bookmark-fill"></i> Select a Prompt
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <select class="form-select" id="promptDropdown" 
+                                        onchange="loadPrompt()" style="max-width: 100%;">
+                                    <option value="">-- Choose a prompt --</option>
+                                    @foreach (var p in Model.AvailablePrompts)
+                                    {
+                                        <option value="@p.Id">@p.Name</option>
+                                    }
+                                </select>
+                                <a href="@Url.Action("Index", "Prompts")" class="btn btn-outline-secondary"
+                                    title="Manage saved prompts">
+                                    <i class="bi bi-gear"></i> Manage
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-4">
+                            <i class="bi bi-lightbulb-fill"></i>
+                            <p class="mb-1"><strong>No saved prompts yet.</strong> <a
+                                href="@Url.Action("Create", "Prompts")" class="alert-link">Create one now</a></p>
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label for="promptTextarea" class="form-label">
+                            <i class="bi bi-chat-dots-fill"></i> Prompt
+                        </label>
+                        <textarea class="form-control" id="promptTextarea" 
+                                  placeholder="Select a prompt from the dropdown above or enter your own"
+                                  style="height: 100px;"></textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary btn-lg" id="sendBtn" onclick="sendPrompt()">
+                            <i class="bi bi-send-fill"></i> Send
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="clearBtn" onclick="clearPrompt()">
+                            <i class="bi bi-arrow-clockwise"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Window (Side Panel) -->
+        <div class="col-lg-4" style="display: flex; flex-direction: column; height: 100%; padding: 15px;">
+            <div class="card" style="flex: 1; display: flex; flex-direction: column;">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-terminal"></i> Communication Log
+                    </h5>
+                </div>
+                <div id="logContent" class="card-body" style="flex: 1; overflow-y: auto; font-family: monospace; font-size: 0.85rem;">
+                    <!-- Logs will be displayed here -->
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-sm btn-outline-secondary w-100" onclick="clearLogs()">
+                        <i class="bi bi-trash"></i> Clear Logs
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let conversationHistory = [];
+    let lastLogCount = 0;
+    let logPollingInterval = null;
+    let isSending = false;
+
+    // Load prompt when selected
+    async function loadPrompt() {
+        const promptId = document.getElementById('promptDropdown').value;
+        if (!promptId) return;
+
+        try {
+            const response = await fetch(`/Prompts/GetPrompt?id=${promptId}`);
+            const prompt = await response.json();
+            if (prompt && prompt.content) {
+                document.getElementById('promptTextarea').value = prompt.content;
+                document.getElementById('promptTextarea').focus();
+            }
+        } catch (error) {
+            console.error('Error loading prompt:', error);
+            alert('Error loading prompt');
+        }
+    }
+
+    // Send prompt
+    async function sendPrompt() {
+        const promptText = document.getElementById('promptTextarea').value.trim();
+        
+        if (!promptText) {
+            alert('Please enter a prompt');
+            return;
+        }
+
+        if (isSending) return;
+        isSending = true;
+        
+        const sendBtn = document.getElementById('sendBtn');
+        const originalText = sendBtn.innerHTML;
+        sendBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Sending...';
+        sendBtn.disabled = true;
+
+        try {
+            const startTime = Date.now();
+            
+            const response = await fetch('/Home/SendCommsRequest', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ prompt: promptText })
+            });
+
+            const endTime = Date.now();
+            const timing = endTime - startTime;
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to send prompt');
+            }
+
+            const data = await response.json();
+            
+            // Add to conversation history
+            conversationHistory.push({
+                prompt: promptText,
+                response: data.response,
+                timing_ms: timing
+            });
+
+            // Update UI
+            displayConversation();
+            document.getElementById('promptTextarea').value = '';
+            
+            // Auto-scroll to bottom
+            setTimeout(() => {
+                const historyContainer = document.getElementById('conversationHistory');
+                historyContainer.scrollTop = historyContainer.scrollHeight;
+            }, 100);
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert(`Error: ${error.message}`);
+        } finally {
+            sendBtn.innerHTML = originalText;
+            sendBtn.disabled = false;
+            isSending = false;
+        }
+    }
+
+    // Display conversation
+    function displayConversation() {
+        const container = document.getElementById('conversationHistory');
+        container.innerHTML = '';
+
+        conversationHistory.forEach((item, index) => {
+            // Prompt bubble
+            const promptDiv = document.createElement('div');
+            promptDiv.className = 'mb-3';
+            promptDiv.innerHTML = `
+                <div class="bg-primary text-white rounded p-3" style="margin-left: 20%; word-wrap: break-word;">
+                    <small class="d-block mb-2" style="opacity: 0.8;">You</small>
+                    <div>${escapeHtml(item.prompt)}</div>
+                </div>
+            `;
+            container.appendChild(promptDiv);
+
+            // Response bubble
+            const responseDiv = document.createElement('div');
+            responseDiv.className = 'mb-3';
+            responseDiv.innerHTML = `
+                <div class="bg-light rounded p-3" style="margin-right: 20%; border: 1px solid #ddd; word-wrap: break-word;">
+                    <small class="d-block mb-2 text-muted">
+                        <i class="bi bi-robot"></i> Assistant (${item.timing_ms}ms)
+                    </small>
+                    <div>${escapeHtml(item.response)}</div>
+                </div>
+            `;
+            container.appendChild(responseDiv);
+        });
+    }
+
+    // Clear prompt
+    function clearPrompt() {
+        document.getElementById('promptTextarea').value = '';
+        document.getElementById('promptDropdown').value = '';
+    }
+
+    // Log window functions
+    async function fetchLogs() {
+        try {
+            const response = await fetch('/Home/GetLogs');
+            const logs = await response.json();
+            updateLogDisplay(logs);
+        } catch (error) {
+            console.error('Error fetching logs:', error);
+        }
+    }
+
+    function updateLogDisplay(logs) {
+        const logContent = document.getElementById('logContent');
+        
+        if (logs.length > lastLogCount) {
+            logContent.innerHTML = '';
+            logs.forEach(log => {
+                const logEntry = document.createElement('div');
+                logEntry.className = `mb-2 p-2 rounded ${getLogLevelClass(log.level)}`;
+                
+                const timestamp = new Date(log.timestamp).toLocaleTimeString();
+                
+                logEntry.innerHTML = `
+                    <small class="d-block">
+                        <span class="text-muted">${timestamp}</span>
+                        <span class="badge bg-secondary">${log.level}</span>
+                    </small>
+                    <div class="mt-1">${escapeHtml(log.message)}</div>
+                `;
+                
+                logContent.appendChild(logEntry);
+            });
+            
+            logContent.scrollTop = logContent.scrollHeight;
+            lastLogCount = logs.length;
+        }
+    }
+
+    function getLogLevelClass(level) {
+        const classMap = {
+            'DEBUG': 'bg-light',
+            'INFO': 'bg-info bg-opacity-10',
+            'WARN': 'bg-warning bg-opacity-10',
+            'ERROR': 'bg-danger bg-opacity-10',
+            'SUCCESS': 'bg-success bg-opacity-10'
+        };
+        return classMap[level] || 'bg-light';
+    }
+
+    function clearLogs() {
+        document.getElementById('logContent').innerHTML = '';
+        lastLogCount = 0;
+    }
+
+    function escapeHtml(text) {
+        text = text || '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // Start log polling when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchLogs();
+        logPollingInterval = setInterval(fetchLogs, 500);
+    });
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+        if (logPollingInterval) {
+            clearInterval(logPollingInterval);
+        }
+    });
+</script>
+
+<style>
+    .log-entry {
+        padding: 8px;
+        margin-bottom: 8px;
+        border-left: 3px solid #ddd;
+        background-color: #f9f9f9;
+        font-size: 0.85rem;
+    }
+
+    .log-entry.DEBUG {
+        border-left-color: #6c757d;
+    }
+
+    .log-entry.INFO {
+        border-left-color: #0d6efd;
+    }
+
+    .log-entry.WARN {
+        border-left-color: #ffc107;
+    }
+
+    .log-entry.ERROR {
+        border-left-color: #dc3545;
+    }
+
+    .log-entry.SUCCESS {
+        border-left-color: #198754;
+    }
+
+    .log-timestamp {
+        color: #999;
+        font-size: 0.75rem;
+        margin-right: 8px;
+    }
+
+    .log-level {
+        font-weight: bold;
+        font-size: 0.75rem;
+        margin-right: 8px;
+        text-transform: uppercase;
+    }
+
+    .log-message {
+        word-break: break-word;
+    }
+</style>
