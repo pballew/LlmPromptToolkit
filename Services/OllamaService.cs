@@ -11,8 +11,9 @@ public class OllamaService
     private readonly HttpClient _httpClient;
     private readonly string _baseUrl = "http://localhost:11434";
     private string _modelName = "llama3.1:8b";
+    private readonly LoggingService? _loggingService;
 
-    public OllamaService(string baseUrl, string? modelName = null)
+    public OllamaService(string baseUrl, string? modelName = null, LoggingService? loggingService = null)
     {
         if (!string.IsNullOrWhiteSpace(baseUrl))
         {
@@ -24,6 +25,7 @@ public class OllamaService
             _modelName = modelName;
         }
 
+        _loggingService = loggingService;
         _httpClient = new HttpClient();
     }
 
@@ -39,9 +41,13 @@ public class OllamaService
     {
         try
         {
+            _loggingService?.Log($"Checking if model '{modelName}' is loaded...", "INFO");
             var response = await _httpClient.GetAsync($"{_baseUrl}/api/tags");
             if (!response.IsSuccessStatusCode)
+            {
+                _loggingService?.Log($"Failed to get model tags: {response.StatusCode}", "WARN");
                 return false;
+            }
 
             string tagsJson = await response.Content.ReadAsStringAsync();
             using JsonDocument doc = JsonDocument.Parse(tagsJson);
@@ -55,16 +61,20 @@ public class OllamaService
                     {
                         string name = nameElement.GetString() ?? string.Empty;
                         if (name.StartsWith(modelName))
+                        {
+                            _loggingService?.Log($"Model '{modelName}' is loaded and ready", "SUCCESS");
                             return true;
+                        }
                     }
                 }
             }
 
+            _loggingService?.Log($"Model '{modelName}' not found in loaded models", "WARN");
             return false;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error checking if model is loaded: {ex.Message}");
+            _loggingService?.Log($"Error checking if model is loaded: {ex.Message}", "ERROR");
             return false;
         }
     }
@@ -76,7 +86,7 @@ public class OllamaService
     {
         try
         {
-            Console.WriteLine($"Pulling model: {modelName}...");
+            _loggingService?.Log($"🔄 Pulling model: {modelName}...", "INFO");
 
             var request = new { name = modelName };
             var json = JsonSerializer.Serialize(request);
@@ -86,18 +96,18 @@ public class OllamaService
             
             if (response.IsSuccessStatusCode)
             {
-                Console.WriteLine($"Model {modelName} successfully loaded");
+                _loggingService?.Log($"✓ Model '{modelName}' successfully loaded", "SUCCESS");
                 return true;
             }
             else
             {
-                Console.WriteLine($"Failed to pull model: {response.StatusCode}");
+                _loggingService?.Log($"✗ Failed to pull model: {response.StatusCode}", "ERROR");
                 return false;
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error pulling model: {ex.Message}");
+            _loggingService?.Log($"Error pulling model: {ex.Message}", "ERROR");
             return false;
         }
     }
@@ -109,7 +119,7 @@ public class OllamaService
     {
         if (!await IsModelLoadedAsync(modelName))
         {
-            Console.WriteLine($"Model {modelName} is not loaded. Attempting to pull it...");
+            _loggingService?.Log($"Model '{modelName}' is not loaded. Attempting to pull it...", "INFO");
             await PullModelAsync(modelName);
         }
     }
@@ -126,34 +136,50 @@ public class OllamaService
             Stream = false
         };
 
-        Console.WriteLine("=======================================================================");
-        Console.WriteLine($"Model: {requestBody.Model}");
-        Console.WriteLine($"Context count: {requestBody.Context.Length}");
-        Console.WriteLine($"Prompt: {requestBody.Prompt}");
+        _loggingService?.Log($"═══════════════════════════════════════════════════════════════", "DEBUG");
+        _loggingService?.Log($"🤖 Model: {requestBody.Model}", "INFO");
+        _loggingService?.Log($"📝 Context count: {requestBody.Context.Length}", "INFO");
+        _loggingService?.Log($"💬 Prompt: {requestBody.Prompt.Substring(0, Math.Min(100, requestBody.Prompt.Length))}...", "INFO");
+        _loggingService?.Log($"⏳ Sending request to {_baseUrl}/api/generate", "INFO");
 
         var json = JsonSerializer.Serialize(requestBody);
         var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
         try
         {
+            _loggingService?.Log("📤 Waiting for response...", "DEBUG");
             HttpResponseMessage response = await _httpClient.PostAsync($"{_baseUrl}/api/generate", content);
             response.EnsureSuccessStatusCode();
 
             string responseJson = await response.Content.ReadAsStringAsync();
             var endTime = DateTime.Now;
             TimeSpan elapsed = endTime - startTime;
-            Console.WriteLine($"Request/Response Time: {elapsed.TotalSeconds:F2} seconds");
+            
+            _loggingService?.Log($"✓ Response received in {elapsed.TotalSeconds:F2} seconds", "SUCCESS");
 
             var llmResponse = JsonSerializer.Deserialize<LlmResponse>(responseJson);
 
-            llmResponse?.Print();
+            if (llmResponse != null)
+            {
+                _loggingService?.Log($"📊 Response length: {llmResponse.Response.Length} characters", "INFO");
+                _loggingService?.Log($"🎯 Model used: {llmResponse.Model}", "INFO");
+                _loggingService?.Log($"✓ Request completed successfully", "SUCCESS");
+            }
 
-            Console.WriteLine("=======================================================================\n\n");
+            _loggingService?.Log($"═══════════════════════════════════════════════════════════════", "DEBUG");
+            
             return llmResponse ?? new LlmResponse { Response = "No response received" };
         }
         catch (HttpRequestException ex)
         {
+            _loggingService?.Log($"✗ Connection failed: {ex.Message}", "ERROR");
+            _loggingService?.Log($"Make sure Ollama is running at {_baseUrl}", "ERROR");
             throw new Exception($"Failed to connect to Ollama server at {_baseUrl}. Make sure Ollama is running.", ex);
+        }
+        catch (Exception ex)
+        {
+            _loggingService?.Log($"✗ Error: {ex.Message}", "ERROR");
+            throw;
         }
     }
 }

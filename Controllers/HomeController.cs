@@ -11,13 +11,15 @@ public class HomeController : Controller
     private readonly OllamaService _ollamaService;
     private readonly PromptService _promptService;
     private readonly JsonValidationService _validationService;
+    private readonly LoggingService _loggingService;
     private readonly ILogger<HomeController> _logger;
 
-    public HomeController(OllamaService ollamaService, PromptService promptService, JsonValidationService validationService, ILogger<HomeController> logger)
+    public HomeController(OllamaService ollamaService, PromptService promptService, JsonValidationService validationService, LoggingService loggingService, ILogger<HomeController> logger)
     {
         _ollamaService = ollamaService;
         _promptService = promptService;
         _validationService = validationService;
+        _loggingService = loggingService;
         _logger = logger;
     }
 
@@ -25,6 +27,7 @@ public class HomeController : Controller
     {
         try
         {
+            _loggingService.Log("🏠 Home page loaded", "INFO");
             var prompts = await _promptService.GetAllPromptsAsync();
             var viewModel = new HomeIndexViewModel
             {
@@ -35,6 +38,7 @@ public class HomeController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading prompts");
+            _loggingService.Log($"Error loading prompts: {ex.Message}", "ERROR");
             return View(new HomeIndexViewModel { ErrorMessage = "Failed to load prompts" });
         }
     }
@@ -116,5 +120,22 @@ public class HomeController : Controller
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+
+    /// <summary>
+    /// API endpoint to get logs
+    /// </summary>
+    [HttpGet]
+    public IActionResult GetLogs()
+    {
+        try
+        {
+            var logs = _loggingService.GetLogs();
+            return Json(logs);
+        }
+        catch (Exception ex)
+        {
+            return Json(new { error = ex.Message });
+        }
     }
 }

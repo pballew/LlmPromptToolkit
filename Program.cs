@@ -6,12 +6,16 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddControllersWithViews();
 
+// Register LoggingService as singleton
+builder.Services.AddSingleton<LoggingService>();
+
 // Register OllamaService with configuration from appsettings
 builder.Services.AddScoped<OllamaService>(sp =>
 {
     var baseUrl = builder.Configuration["Ollama:BaseUrl"] ?? "http://localhost:11434";
     var modelName = builder.Configuration["Ollama:DefaultModel"] ?? "llama3.1:8b";
-    return new OllamaService(baseUrl, modelName);
+    var loggingService = sp.GetRequiredService<LoggingService>();
+    return new OllamaService(baseUrl, modelName, loggingService);
 });
 
 builder.Services.AddScoped<PromptService>();
