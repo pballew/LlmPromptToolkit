@@ -147,12 +147,26 @@
         try {
             const startTime = Date.now();
             
+            // Get context from the last request if available
+            const lastContext = conversationHistory.length > 0 
+                ? conversationHistory[conversationHistory.length - 1].context 
+                : null;
+            
+            const requestBody = { 
+                prompt: promptText 
+            };
+            
+            // Include context if available
+            if (lastContext && lastContext.length > 0) {
+                requestBody.context = lastContext;
+            }
+            
             const response = await fetch('/Home/SendCommsRequest', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ prompt: promptText })
+                body: JSON.stringify(requestBody)
             });
 
             const endTime = Date.now();
@@ -165,11 +179,12 @@
 
             const data = await response.json();
             
-            // Add to conversation history
+            // Add to conversation history with context tokens
             conversationHistory.push({
                 prompt: promptText,
                 response: data.response,
-                timing_ms: timing
+                timing_ms: timing,
+                context: data.context
             });
 
             // Update UI

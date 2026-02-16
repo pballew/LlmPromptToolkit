@@ -26,11 +26,13 @@ public class CommsRequestModel
     public string Prompt { get; set; } = string.Empty;
     public string Response { get; set; } = string.Empty;
     public int TimingMs { get; set; }
+    public int[]? Context { get; set; }
 }
 
 public class CommsRequestPayload
 {
     public string Prompt { get; set; } = string.Empty;
+    public int[]? Context { get; set; }
 }
 
 public class CommsViewModel

@@ -152,7 +152,7 @@ public class HomeController : Controller
             // Ensure the model is loaded before sending the request
             await _ollamaService.EnsureModelIsLoadedAsync(_ollamaService.GetModelName());
             
-            var response = await _ollamaService.GetLlmResponseAsync(payload.Prompt);
+            var response = await _ollamaService.GetLlmResponseAsync(payload.Prompt, payload.Context);
             var endTime = DateTime.Now;
             var elapsed = endTime - startTime;
 
@@ -160,7 +160,8 @@ public class HomeController : Controller
             {
                 response = response.Response,
                 timing_ms = (int)elapsed.TotalMilliseconds,
-                model = response.Model
+                model = response.Model,
+                context = response.Context
             });
         }
         catch (Exception ex)
