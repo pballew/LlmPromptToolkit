@@ -27,12 +27,22 @@ public class CommsRequestModel
     public string Response { get; set; } = string.Empty;
     public int TimingMs { get; set; }
     public int[]? Context { get; set; }
+    public string? Schema { get; set; }
+    public bool IsSchemaValid { get; set; } = true;
+    public List<string> ValidationErrors { get; set; } = new();
 }
 
 public class CommsRequestPayload
 {
     public string Prompt { get; set; } = string.Empty;
     public int[]? Context { get; set; }
+    public string? Schema { get; set; }
+}
+
+public class ValidationDetail
+{
+    public bool IsValid { get; set; }
+    public List<string> Errors { get; set; } = new();
 }
 
 public class CommsViewModel

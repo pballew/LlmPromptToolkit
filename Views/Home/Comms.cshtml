@@ -22,6 +22,19 @@
                 </div>
             }
 
+            <!-- Active Schema Indicator -->
+            <div id="activeSchemaPanel" style="display: none; margin-bottom: 15px; padding: 12px; background-color: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 6px;" class="d-flex align-items-center justify-content-between">
+                <div>
+                    <small class="d-block text-muted mb-1">
+                        <i class="bi bi-shield-lock"></i> Schema validation enabled
+                    </small>
+                    <small id="schemaSourceText" class="d-block"></small>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="disableValidation()" title="Remove active schema">
+                    <i class="bi bi-x-circle"></i> Disable
+                </button>
+            </div>
+
             <!-- Conversation History Container -->
             <div id="conversationHistory" style="flex: 1; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; background-color: #f9f9f9;">
                 <!-- Conversation items will be added here dynamically -->
@@ -67,7 +80,7 @@
                         </label>
                         <textarea class="form-control" id="promptTextarea" 
                                   placeholder="Select a prompt from the dropdown above or enter your own"
-                                  style="height: 3em !important; width: 100%;"></textarea>
+                                  style="min-height: 100px; width: 100%;"></textarea>
                     </div>
 
                     <div class="d-flex gap-2">
@@ -84,14 +97,14 @@
     </div>
 
     <!-- Log Window (Floating Right Panel) -->
-    <div style="position: fixed; right: 15px; top: 120px; width: calc(33.333% - 30px); height: calc(100vh - 150px); display: flex; flex-direction: column; padding: 0;">
-        <div class="card" style="flex: 1; display: flex; flex-direction: column; margin: 0;">
+    <div style="position: fixed; right: 15px; top: 10px; bottom: 10px; width: 33%; display: flex; flex-direction: column; padding: 0;">
+        <div class="card" style="flex: 1; display: flex; flex-direction: column; margin: 0; height: 97vh;">
             <div class="card-header">
                 <h5 class="card-title mb-0">
                     <i class="bi bi-terminal"></i> Communication Log
                 </h5>
             </div>
-            <div id="logContent" class="card-body" style="flex: 1; overflow-y: auto; font-family: monospace; font-size: 0.85rem;">
+            <div id="logContent" class="card-body" style="flex: 1; overflow-y: scroll; font-family: monospace; font-size: 0.85rem;">
                 <!-- Logs will be displayed here -->
             </div>
             <div class="card-footer">
@@ -108,6 +121,8 @@
     let lastLogCount = 0;
     let logPollingInterval = null;
     let isSending = false;
+    let activeSchema = null;
+    let activeSchemaSourceIndex = null;
 
     // Load prompt when selected
     async function loadPrompt() {
@@ -125,6 +140,54 @@
             console.error('Error loading prompt:', error);
             alert('Error loading prompt');
         }
+    }
+
+    // Extract JSON from response text
+    function extractJsonFromResponse(text) {
+        const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (jsonMatch && jsonMatch[1]) {
+            try {
+                return JSON.parse(jsonMatch[1].trim());
+            } catch (e) {
+                return null;
+            }
+        }
+        
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    // Use schema from a prompt
+    function useSchemaFromPrompt(index) {
+        const promptText = conversationHistory[index].prompt;
+        const jsonData = extractJsonFromResponse(promptText);
+        
+        if (!jsonData) {
+            alert('Could not extract JSON schema from this prompt');
+            return;
+        }
+        
+        activeSchema = JSON.stringify(jsonData);
+        activeSchemaSourceIndex = index;
+        
+        document.getElementById('schemaSourceText').textContent = 
+            `Validating against: "${promptText.substring(0, 60)}${promptText.length > 60 ? '...' : ''}"`;
+        
+        document.getElementById('activeSchemaPanel').style.display = 'flex';
+        
+        // Re-validate all responses
+        displayConversation();
+    }
+
+    // Disable validation
+    function disableValidation() {
+        activeSchema = null;
+        activeSchemaSourceIndex = null;
+        document.getElementById('activeSchemaPanel').style.display = 'none';
+        displayConversation();
     }
 
     // Send prompt
@@ -147,12 +210,17 @@
         try {
             // Add request to conversation history immediately (before sending)
             const newRequestIndex = conversationHistory.length;
+            const promptJson = extractJsonFromResponse(promptText);
             conversationHistory.push({
                 prompt: promptText,
                 response: '', // Will be filled in when response arrives
                 timing_ms: 0,
                 context: null,
-                isLoading: true
+                isLoading: true,
+                isSchemaValid: null,
+                validationErrors: [],
+                promptContainsJson: promptJson !== null,
+                responseContainsJson: false
             });
 
             // Update UI to show the prompt immediately
@@ -181,6 +249,11 @@
                 requestBody.context = lastContext;
             }
             
+            // Include schema if active
+            if (activeSchema) {
+                requestBody.schema = activeSchema;
+            }
+            
             const response = await fetch('/Home/SendCommsRequest', {
                 method: 'POST',
                 headers: {
@@ -199,11 +272,17 @@
 
             const data = await response.json();
             
+            // Check if response contains JSON
+            const jsonData = extractJsonFromResponse(data.response);
+            
             // Update the request with the response
             conversationHistory[newRequestIndex].response = data.response;
             conversationHistory[newRequestIndex].timing_ms = timing;
             conversationHistory[newRequestIndex].context = data.context;
             conversationHistory[newRequestIndex].isLoading = false;
+            conversationHistory[newRequestIndex].responseContainsJson = jsonData !== null;
+            conversationHistory[newRequestIndex].isSchemaValid = data.isSchemaValid;
+            conversationHistory[newRequestIndex].validationErrors = data.validationErrors || [];
 
             // Update UI with the response
             displayConversation();
@@ -233,10 +312,17 @@
             // Prompt bubble
             const promptDiv = document.createElement('div');
             promptDiv.className = 'mb-3';
+            
+            let schemaButton = '';
+            if (item.promptContainsJson && !activeSchema) {
+                schemaButton = `<div class="mt-2 alert alert-info py-2 px-3 mb-0"><small><i class="bi bi-gear"></i> <button type="button" class="btn btn-link btn-sm" onclick="useSchemaFromPrompt(${index})">Use this JSON as schema</button> for validating responses</small></div>`;
+            }
+            
             promptDiv.innerHTML = `
                 <div class="bg-primary text-white rounded p-3" style="margin-left: 20%; word-wrap: break-word;">
                     <small class="d-block mb-2" style="opacity: 0.8;">You</small>
                     <div>${escapeHtml(item.prompt)}</div>
+                    ${schemaButton}
                 </div>
             `;
             container.appendChild(promptDiv);
@@ -257,17 +343,33 @@
                     </div>
                 `;
             } else {
+                let validationBadge = '';
+                if (activeSchema && item.isSchemaValid !== null) {
+                    if (item.isSchemaValid) {
+                        validationBadge = '<span class="badge bg-success ms-2"><i class="bi bi-check-circle-fill"></i> Valid</span>';
+                    } else {
+                        validationBadge = `<span class="badge bg-danger ms-2" data-bs-toggle="tooltip" data-bs-placement="top" title="${escapeHtml(item.validationErrors.join('; '))}"><i class="bi bi-exclamation-circle-fill"></i> Invalid</span>`;
+                    }
+                }
+
                 responseDiv.innerHTML = `
                     <div class="bg-light rounded p-3" style="margin-right: 20%; border: 1px solid #ddd; word-wrap: break-word;">
-                        <small class="d-block mb-2 text-muted">
-                            <i class="bi bi-robot"></i> Assistant (${item.timing_ms}ms)
-                        </small>
+                        <div class="d-flex align-items-center mb-2">
+                            <small class="text-muted">
+                                <i class="bi bi-robot"></i> Assistant (${item.timing_ms}ms)
+                            </small>
+                            ${validationBadge}
+                        </div>
                         <div>${escapeHtml(item.response)}</div>
                     </div>
                 `;
             }
             container.appendChild(responseDiv);
         });
+        
+        // Re-initialize tooltips
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(t => new bootstrap.Tooltip(t));
     }
 
     // Clear prompt

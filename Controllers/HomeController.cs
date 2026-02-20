@@ -156,12 +156,46 @@ public class HomeController : Controller
             var endTime = DateTime.Now;
             var elapsed = endTime - startTime;
 
+            // Validate against schema if provided
+            bool isSchemaValid = true;
+            var validationErrors = new List<string>();
+            
+            if (!string.IsNullOrWhiteSpace(payload.Schema))
+            {
+                try
+                {
+                    var (isValid, errors) = await _validationService.ValidateAgainstSchemaAsync(
+                        response.Response, 
+                        payload.Schema
+                    );
+                    isSchemaValid = isValid;
+                    validationErrors = errors;
+                    
+                    if (!isSchemaValid)
+                    {
+                        _loggingService.Log($"⚠️ Response failed schema validation: {string.Join("; ", errors)}", "WARN");
+                    }
+                    else
+                    {
+                        _loggingService.Log($"✅ Response passed schema validation", "SUCCESS");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _loggingService.Log($"Error validating schema: {ex.Message}", "ERROR");
+                    validationErrors.Add($"Schema validation error: {ex.Message}");
+                    isSchemaValid = false;
+                }
+            }
+
             return Ok(new
             {
                 response = response.Response,
                 timing_ms = (int)elapsed.TotalMilliseconds,
                 model = response.Model,
-                context = response.Context
+                context = response.Context,
+                isSchemaValid = isSchemaValid,
+                validationErrors = validationErrors
             });
         }
         catch (Exception ex)

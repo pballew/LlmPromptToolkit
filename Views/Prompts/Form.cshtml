@@ -16,87 +16,105 @@
     </h1>
 </div>
 
-<div class="row">
-    <div class="col-lg-8">
-        @if (!ViewData.ModelState.IsValid)
-        {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                <strong>Please fix the errors below:</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                <ul class="mt-2 mb-0">
-                    @foreach (var modelState in ViewData.ModelState.Values)
-                    {
-                        @foreach (var error in modelState.Errors)
+<div class="container-lg">
+    <div class="row">
+        <div class="col-lg-8">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <strong>Please fix the errors below:</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <ul class="mt-2 mb-0">
+                        @foreach (var modelState in ViewData.ModelState.Values)
                         {
-                            <li>@error.ErrorMessage</li>
+                            @foreach (var error in modelState.Errors)
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
                         }
-                    }
-                </ul>
-            </div>
-        }
+                    </ul>
+                </div>
+            }
 
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-pencil-square"></i> Prompt Details
-                </h5>
-            </div>
-            <div class="card-body">
-                <form method="post" action="@Url.Action(action, "Prompts")">
-                    @if (!string.IsNullOrEmpty(Model?.Id))
-                    {
-                        <input type="hidden" name="Id" value="@Model.Id" />
-                    }
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-pencil-square"></i> Prompt Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="@Url.Action(action, "Prompts")">
+                        @if (!string.IsNullOrEmpty(Model?.Id))
+                        {
+                            <input type="hidden" name="Id" value="@Model.Id" />
+                        }
 
-                    <div class="mb-4">
-                        <label for="Name" class="form-label">
-                            <i class="bi bi-bookmark-fill"></i> Prompt Name
-                            <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" class="form-control form-control-lg" id="Name" name="Name" 
-                               placeholder="Quest Generator, Dialog Writer, etc."
-                               value="@Model?.Name" required />
-                        <small class="form-text text-muted d-block mt-2">A clear, descriptive name for this prompt</small>
-                    </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-4">
+                                    <label for="Name" class="form-label">
+                                        <i class="bi bi-bookmark-fill"></i> Prompt Name
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    
+                                    <input type="text" class="form-control form-control-lg" id="Name" name="Name" 
+                                           placeholder="Quest Generator, Dialog Writer, etc."
+                                           value="@Model?.Name" required />
+                                    <small class="form-text text-muted d-block mt-2">A clear, descriptive name for this prompt</small>
+                                </div>
+                            </div>
+                        </div>
 
-                    <div class="mb-4">
-                        <label for="Content" class="form-label">
-                            <i class="bi bi-chat-dots-fill"></i> Prompt Content
-                            <span class="text-danger">*</span>
-                        </label>
-                        <textarea class="form-control" id="Content" name="Content" 
-                                  rows="18" placeholder="Enter your prompt here..."
-                                  required>@Model?.Content</textarea>
-                        <small class="form-text text-muted d-block mt-2">The complete prompt that will be sent to Ollama</small>
-                    </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-4">
+                                    <label for="Content" class="form-label">
+                                        <i class="bi bi-chat-dots-fill"></i> Prompt Content
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea class="form-control" id="Content" name="Content" 
+                                              rows="18" placeholder="Enter your prompt here..."
+                                              required>@Model?.Content</textarea>
+                                    <small class="form-text text-muted d-block mt-2">The complete prompt that will be sent to Ollama</small>
+                                </div>
+                            </div>
+                        </div>
 
-                    <div class="mb-4">
-                        <label for="RequiredFieldsInput" class="form-label">
-                            <i class="bi bi-check2-square"></i> Required Response Fields (Optional)
-                        </label>
-                        <input type="text" class="form-control" id="RequiredFieldsInput" name="RequiredFieldsInput" 
-                               placeholder="e.g., name, email, age (comma-separated)" 
-                               value="@(Model?.RequiredFields != null ? string.Join(", ", Model.RequiredFields) : "")" />
-                        <small class="form-text text-muted d-block mt-2">
-                            Comma-separated field names that responses should contain. The validator will check if these fields are present in JSON responses.
-                        </small>
-                    </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-4">
+                                    <label for="RequiredFieldsInput" class="form-label">
+                                        <i class="bi bi-check2-square"></i> Required Response Fields (Optional)
+                                    </label>
+                                    <input type="text" class="form-control" id="RequiredFieldsInput" name="RequiredFieldsInput" 
+                                           placeholder="e.g., name, email, age (comma-separated)" 
+                                           value="@(Model?.RequiredFields != null ? string.Join(", ", Model.RequiredFields) : "")" />
+                                    <small class="form-text text-muted d-block mt-2">
+                                        Comma-separated field names that responses should contain. The validator will check if these fields are present in JSON responses.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
 
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-check-circle-fill"></i> @submitButtonText Prompt
-                        </button>
-                        <a href="@Url.Action("Index", "Prompts")" class="btn btn-secondary btn-lg">
-                            <i class="bi bi-x-circle"></i> Cancel
-                        </a>
-                    </div>
-                </form>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="bi bi-check-circle-fill"></i> @submitButtonText Prompt
+                                    </button>
+                                    <a href="@Url.Action("Index", "Prompts")" class="btn btn-secondary btn-lg">
+                                        <i class="bi bi-x-circle"></i> Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-lg-4">
+        <div class="col-lg-4">
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">

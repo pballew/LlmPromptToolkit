@@ -149,4 +149,101 @@ public class JsonValidationService
             }
         }
     }
+
+    /// <summary>
+    /// Validates a response against a JSON schema
+    /// </summary>
+    public async Task<(bool isValid, List<string> errors)> ValidateAgainstSchemaAsync(string responseJson, string schemaJson)
+    {
+        var errors = new List<string>();
+
+        try
+        {
+            // Parse response
+            using JsonDocument responseDoc = JsonDocument.Parse(responseJson);
+            using JsonDocument schemaDoc = JsonDocument.Parse(schemaJson);
+
+            var responseElement = responseDoc.RootElement;
+            var schemaElement = schemaDoc.RootElement;
+
+            // Validate against schema
+            ValidateElementAgainstSchema(responseElement, schemaElement, "", errors);
+
+            return await Task.FromResult((errors.Count == 0, errors));
+        }
+        catch (JsonException ex)
+        {
+            errors.Add($"JSON Parse Error: {ex.Message}");
+            return await Task.FromResult((false, errors));
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"Schema validation error: {ex.Message}");
+            return await Task.FromResult((false, errors));
+        }
+    }
+
+    private void ValidateElementAgainstSchema(JsonElement element, JsonElement schema, string path, List<string> errors)
+    {
+        // Get required properties from schema
+        if (schema.TryGetProperty("required", out var requiredElement) && requiredElement.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var requiredProp in requiredElement.EnumerateArray())
+            {
+                string propName = requiredProp.GetString() ?? "";
+                if (!element.TryGetProperty(propName, out _))
+                {
+                    errors.Add($"Missing required field: '{propName}'");
+                }
+            }
+        }
+
+        // Validate properties
+        if (schema.TryGetProperty("properties", out var propertiesElement) && propertiesElement.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var property in propertiesElement.EnumerateObject())
+            {
+                string propName = property.Name;
+                if (element.TryGetProperty(propName, out var propValue))
+                {
+                    // Basic type validation
+                    if (property.Value.TryGetProperty("type", out var typeElement))
+                    {
+                        string expectedType = typeElement.GetString() ?? "";
+                        string actualType = GetJsonTypeName(propValue);
+
+                        if (!TypeMatches(expectedType, actualType))
+                        {
+                            errors.Add($"Field '{propName}' has type '{actualType}' but expected '{expectedType}'");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private string GetJsonTypeName(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.Object => "object",
+            JsonValueKind.Array => "array",
+            JsonValueKind.String => "string",
+            JsonValueKind.Number => "number",
+            JsonValueKind.True or JsonValueKind.False => "boolean",
+            JsonValueKind.Null => "null",
+            _ => "unknown"
+        };
+    }
+
+    private bool TypeMatches(string schemaType, string jsonType)
+    {
+        if (schemaType == jsonType) return true;
+        
+        // Allow type variations
+        if (schemaType == "boolean" && jsonType == "boolean") return true;
+        if ((schemaType == "integer" || schemaType == "number") && jsonType == "number") return true;
+        
+        return false;
+    }
 }
