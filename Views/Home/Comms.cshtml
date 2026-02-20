@@ -96,30 +96,10 @@
         </div>
     </div>
 
-    <!-- Log Window (Floating Right Panel) -->
-    <div style="position: fixed; right: 15px; top: 10px; bottom: 10px; width: 33%; display: flex; flex-direction: column; padding: 0;">
-        <div class="card" style="flex: 1; display: flex; flex-direction: column; margin: 0; height: 97vh;">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-terminal"></i> Communication Log
-                </h5>
-            </div>
-            <div id="logContent" class="card-body" style="flex: 1; overflow-y: scroll; font-family: monospace; font-size: 0.85rem;">
-                <!-- Logs will be displayed here -->
-            </div>
-            <div class="card-footer">
-                <button class="btn btn-sm btn-outline-secondary w-100" onclick="clearLogs()">
-                    <i class="bi bi-trash"></i> Clear Logs
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+<partial name="_LogWindow" />
 
 <script>
     let conversationHistory = [];
-    let lastLogCount = 0;
-    let logPollingInterval = null;
     let isSending = false;
     let activeSchema = null;
     let activeSchemaSourceIndex = null;
@@ -377,85 +357,6 @@
         document.getElementById('promptTextarea').value = '';
         document.getElementById('promptDropdown').value = '';
     }
-
-    // Log window functions
-    async function fetchLogs() {
-        try {
-            const response = await fetch('/Home/GetLogs');
-            const logs = await response.json();
-            updateLogDisplay(logs);
-        } catch (error) {
-            console.error('Error fetching logs:', error);
-        }
-    }
-
-    function updateLogDisplay(logs) {
-        const logContent = document.getElementById('logContent');
-        
-        if (logs.length > lastLogCount) {
-            logContent.innerHTML = '';
-            logs.forEach(log => {
-                const logEntry = document.createElement('div');
-                logEntry.className = `mb-2 p-2 rounded ${getLogLevelClass(log.level)}`;
-                
-                const timestamp = new Date(log.timestamp).toLocaleTimeString();
-                
-                logEntry.innerHTML = `
-                    <small class="d-block">
-                        <span class="text-muted">${timestamp}</span>
-                        <span class="badge bg-secondary">${log.level}</span>
-                    </small>
-                    <div class="mt-1">${escapeHtml(log.message)}</div>
-                `;
-                
-                logContent.appendChild(logEntry);
-            });
-            
-            logContent.scrollTop = logContent.scrollHeight;
-            lastLogCount = logs.length;
-        }
-    }
-
-    function getLogLevelClass(level) {
-        const classMap = {
-            'DEBUG': 'bg-light',
-            'INFO': 'bg-info bg-opacity-10',
-            'WARN': 'bg-warning bg-opacity-10',
-            'ERROR': 'bg-danger bg-opacity-10',
-            'SUCCESS': 'bg-success bg-opacity-10'
-        };
-        return classMap[level] || 'bg-light';
-    }
-
-    function clearLogs() {
-        document.getElementById('logContent').innerHTML = '';
-        lastLogCount = 0;
-    }
-
-    function escapeHtml(text) {
-        text = text || '';
-        const map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, m => map[m]);
-    }
-
-    // Start log polling when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-        fetchLogs();
-        logPollingInterval = setInterval(fetchLogs, 500);
-    });
-
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', function() {
-        if (logPollingInterval) {
-            clearInterval(logPollingInterval);
-        }
-    });
 </script>
 
 <style>
