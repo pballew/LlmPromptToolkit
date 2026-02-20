@@ -159,8 +159,11 @@ public class JsonValidationService
 
         try
         {
+            // Extract JSON from response (handles markdown code blocks like ```json {...} ```)
+            string extractedJson = ExtractJsonFromText(responseJson);
+            
             // Parse response
-            using JsonDocument responseDoc = JsonDocument.Parse(responseJson);
+            using JsonDocument responseDoc = JsonDocument.Parse(extractedJson);
             using JsonDocument schemaDoc = JsonDocument.Parse(schemaJson);
 
             var responseElement = responseDoc.RootElement;
@@ -181,6 +184,33 @@ public class JsonValidationService
             errors.Add($"Schema validation error: {ex.Message}");
             return await Task.FromResult((false, errors));
         }
+    }
+
+    /// <summary>
+    /// Extracts JSON from text that may contain markdown code blocks
+    /// Handles formats like: ```json {...} ``` or plain JSON
+    /// </summary>
+    private string ExtractJsonFromText(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return text;
+
+        // Pattern 1: ```json {...} ``` or ``` {...} ```
+        var jsonMatch = System.Text.RegularExpressions.Regex.Match(text, @"```(?:json)?\s*([\s\S]*?)```");
+        if (jsonMatch.Success && jsonMatch.Groups[1].Value.Length > 0)
+        {
+            return jsonMatch.Groups[1].Value.Trim();
+        }
+
+        // Pattern 2: json: ``` {...} ```
+        var jsonPrefixMatch = System.Text.RegularExpressions.Regex.Match(text, @"json:\s*```\s*([\s\S]*?)```");
+        if (jsonPrefixMatch.Success && jsonPrefixMatch.Groups[1].Value.Length > 0)
+        {
+            return jsonPrefixMatch.Groups[1].Value.Trim();
+        }
+
+        // No markdown blocks found, return as-is
+        return text;
     }
 
     private void ValidateElementAgainstSchema(JsonElement element, JsonElement schema, string path, List<string> errors)
