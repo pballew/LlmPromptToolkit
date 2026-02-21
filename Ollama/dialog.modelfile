@@ -46,8 +46,10 @@ OUTPUT:
 - The dialog may end naturally or be signaled by the prompt
 - DO NOT speak as the player
 - Set done boolean to true only when dialog has ended
+- Include the round indicator in response as round property: "Round X of 4"
 
 INITIAL TURN (first dialog response):
+- Include round: "Round 1 of 4"
 - Include full NPC object: name, description, tone, characteristics, dialog
 - Include player options array (1-4 options, 5-10 words each)
 - Include done boolean
@@ -57,6 +59,7 @@ SUBSEQUENT TURNS (following player responses):
 - Round counter will be included: [Round X of 4]
 - Extract NPC data from the conversation history in context
 - JSON response should ONLY contain:
+  - round: String with round indicator (required, format: "Round X of 4")
   - npc.dialog: The NPC's next response (required)
   - player.options: Array of 1-4 response options for the player (required)
   - done: Boolean indicating if conversation has ended (required)
@@ -78,11 +81,20 @@ PLAYER OPTIONS RULES:
 - Options must NOT include narration or stage directions
 - ALWAYS include an option for the player to end conversation early
 
+QUEST ACCEPTANCE OPTIONS (when done=true):
+- When set done=true, replace normal player options with quest acceptance/rejection
+- Return EXACTLY 2 player options:
+  1. Accept the quest (written in first-person player voice, 5-10 words)
+  2. Decline the quest (written in first-person player voice, 5-10 words)
+- Example options: "I'll accept this quest and help you." / "I'm not interested in this quest."
+- Do NOT include other options when done=true
+
 DIALOG JSON SCHEMA (must match exactly):
 ```json
 {
   "type": "object",
   "properties": {
+    "round": {"type": "string"},
     "npc": {
       "type": "object",
       "properties": {
@@ -108,11 +120,13 @@ DIALOG JSON SCHEMA (must match exactly):
     },
     "done": {"type": "boolean"}
   },
-  "required": ["npc", "player", "done"]
+  "required": ["round", "npc", "player", "done"]
 }
 ```
 
 CRITICAL:
 - Output only valid JSON
 - Do NOT include any markdown, explanations, or formatting
+- Do NOT wrap the JSON in markdown code blocks (no ```json ... ``` or ``` ... ``` wrapping)
+- Output the raw JSON object only—start with { and end with }
 - If you cannot comply, output: {}
