@@ -242,11 +242,17 @@
             // Add request to conversation history immediately (before sending)
             const newRequestIndex = conversationHistory.length;
             const promptJson = extractJsonFromResponse(promptText);
+            const lastContext = conversationHistory.length > 0 
+                ? conversationHistory[conversationHistory.length - 1].context 
+                : null;
+            const contextCountRequest = lastContext ? lastContext.length : 0;
             conversationHistory.push({
                 prompt: promptText,
                 response: '', // Will be filled in when response arrives
                 timing_ms: 0,
                 context: null,
+                contextCountRequest: contextCountRequest,
+                contextCountResponse: 0,
                 isLoading: true,
                 isSchemaValid: null,
                 validationErrors: [],
@@ -265,11 +271,6 @@
             }, 100);
 
             const startTime = Date.now();
-            
-            // Get context from the previous request if available
-            const lastContext = conversationHistory.length > 1 
-                ? conversationHistory[conversationHistory.length - 2].context 
-                : null;
             
             const requestBody = { 
                 prompt: promptText 
@@ -310,6 +311,7 @@
             conversationHistory[newRequestIndex].response = data.response;
             conversationHistory[newRequestIndex].timing_ms = timing;
             conversationHistory[newRequestIndex].context = data.context;
+            conversationHistory[newRequestIndex].contextCountResponse = data.contextCount || 0;
             conversationHistory[newRequestIndex].isLoading = false;
             conversationHistory[newRequestIndex].responseContainsJson = jsonData !== null;
             conversationHistory[newRequestIndex].isSchemaValid = data.isSchemaValid;
@@ -351,7 +353,7 @@
             
             promptDiv.innerHTML = `
                 <div class="bg-primary text-white rounded p-3" style="margin-left: 20%; word-wrap: break-word;">
-                    <small class="d-block mb-2" style="opacity: 0.8;">You</small>
+                    <small class="d-block mb-2" style="opacity: 0.8;">You${item.contextCountRequest > 0 ? ` (Context: ${item.contextCountRequest} tokens)` : ''}</small>
                     <div>${escapeHtml(item.prompt)}</div>
                     ${schemaButton}
                 </div>
@@ -387,7 +389,7 @@
                     <div class="bg-light rounded p-3" style="margin-right: 20%; border: 1px solid #ddd; word-wrap: break-word;">
                         <div class="d-flex align-items-center mb-2">
                             <small class="text-muted">
-                                <i class="bi bi-robot"></i> Assistant (${item.timing_ms}ms)
+                                <i class="bi bi-robot"></i> Assistant (${item.timing_ms}ms${item.contextCountResponse > 0 ? `, Context: ${item.contextCountResponse} tokens` : ''})
                             </small>
                             ${validationBadge}
                         </div>

@@ -194,6 +194,7 @@ public class HomeController : Controller
                 timing_ms = (int)elapsed.TotalMilliseconds,
                 model = response.Model,
                 context = response.Context,
+                contextCount = response.Context?.Length ?? 0,
                 isSchemaValid = isSchemaValid,
                 validationErrors = validationErrors
             });
