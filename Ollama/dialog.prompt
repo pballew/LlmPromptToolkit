@@ -1,0 +1,55 @@
+PLAYER INFORMATION:
+Name: Raven Blackthorn
+Race: Half-Elf
+Class: Ranger
+
+TOWN INFORMATION:
+Name: Venswiss
+
+QUEST INFORMATION:
+{
+   "title":"Goblin Trouble in Venswiss",
+   "type":"Rescue",
+   "description":"The people of Venswiss are plagued by goblin raids. Guard Captain Orsino requests that you put a stop to their nefarious activities.",
+   "challengeRating":1,
+   "questGiver":{
+      "type":"Guard Captain",
+      "name":"Orsino",
+      "description":"A seasoned and battle-hardened guard captain with many years of service to the kingdom.",
+      "tone":"serious",
+      "characteristics":"formal, no accent, stands at attention, uses military jargon"
+   },
+   "objectives":[
+      {
+         "title":"Investigate Goblin Activity",
+         "type":"TravelTo",
+         "description":"Head to the old cave system on the outskirts of Venswiss.",
+         "questArea":{
+            "type":"cave",
+            "name":"Old Cave System",
+            "description":"A network of ancient caves and tunnels that have been home to goblin raiding parties."
+         }
+      },
+      {
+         "title":"Eliminate the Goblin Threat",
+         "type":"Combat",
+         "description":"Goblins have been terrorizing Venswiss. Put an end to their raids.",
+         "monsters":[
+            {
+               "type":"Goblin",
+               "count":3
+            }
+         ]
+      },
+      {
+         "title":"Return to Orsino and Report",
+         "type":"Return"
+      }
+   ],
+   "rewards":{
+      "gold":75,
+      "experience":250
+   }
+}
+
+Generate the initial NPC dialog response and player options.

@@ -133,11 +133,13 @@ public class OllamaService
             Model = _modelName,
             Prompt = prompt,
             Context = context ?? [],
-            Stream = false
+            Stream = false,
+            Temperature = 0.5
         };
 
         _loggingService?.Log($"═══════════════════════════════════════════════════════════════", "DEBUG");
         _loggingService?.Log($"🤖 Model: {requestBody.Model}", "INFO");
+        _loggingService?.Log($"🌡️  Temperature: {requestBody.Temperature}", "INFO");
         _loggingService?.Log($"📝 Context count: {requestBody.Context.Length}", "INFO");
         _loggingService?.Log($"💬 Prompt: {requestBody.Prompt.Substring(0, Math.Min(100, requestBody.Prompt.Length))}...", "INFO");
         _loggingService?.Log($"⏳ Sending request to {_baseUrl}/api/generate", "INFO");

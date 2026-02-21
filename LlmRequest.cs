@@ -15,4 +15,7 @@ public class LlmRequest
 
     [JsonPropertyName("stream")]
     public bool Stream { get; set; } = false;
+
+    [JsonPropertyName("temperature")]
+    public double Temperature { get; set; } = 0.5;
 }

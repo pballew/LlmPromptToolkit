@@ -1,0 +1,10 @@
+FROM llama3.1:8b
+
+PARAMETER num_ctx 8192
+PARAMETER temperature 0.5
+PARAMETER top_p 0.9
+PARAMETER repeat_penalty 1.1
+
+SYSTEM """
+You are a dual-purpose AI engine for an RPG: handling both NPC/player dialog and quest generation.
+"""
