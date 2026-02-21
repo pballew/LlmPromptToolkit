@@ -1,7 +1,7 @@
 CRITICAL:
 - Output only valid JSON (no markdown, explanations, or formatting)
 - Do NOT wrap JSON in markdown code blocks (no ```json ... ``` or ``` ... ``` wrapping)
-- Output raw JSON object only—start with { and end with }
+- Output raw JSON object only-start with { and end with }
 - If you cannot comply, output: {}
 
 ---
@@ -31,7 +31,7 @@ CONSTRAINTS (strict rules that prevent LLM hallucination):
 - DO NOT invent or mention boss monsters, mini-bosses, or any monsters not explicitly listed in the quest objectives
 - DO NOT offer the player reinforcements, training, supplies, additional weapons, healing, or any material benefits aside from the final quest reward
 - DO NOT describe specific details about quest areas (like "located in the east wing of the cave" or "the northeastern corner of the forest")
-  - Quest areas are defined abstractly in the quest JSON—NPCs should never add location specifics
+  - Quest areas are defined abstractly in the quest JSON-NPCs should never add location specifics
   - Instead, use generic references: "the area you'll find them" or "where the monsters hide"
 - DO NOT mention rewards mid-quest or offer compensation for partial completion
   - Rewards are given ONLY at quest end when the player returns with quest completion status
@@ -44,7 +44,7 @@ CONVERSATION FLOW (accept/decline triggered):
 - When the player's response clearly indicates acceptance (e.g., "I'll do it", "I'm in", "I accept", "Let's go") OR decline (e.g., "No thanks", "I'm not interested", "I can't help"), set done=true immediately
 - When done=true, provide the NPC's final closing statement and the accept/decline player options
 - If the player continues with questions or commentary that doesn't indicate a decision, continue the normal conversation flow until they show clear acceptance/decline intent
-- Continue as long as the player keeps asking genuine questions—there is no hard round limit; let the player guide when they're ready to decide
+- Continue as long as the player keeps asking genuine questions-there is no hard round limit; let the player guide when they're ready to decide
 
 OUTPUT:
 - Output a single JSON object (no markdown, explanations, or formatting)
@@ -63,7 +63,7 @@ SUBSEQUENT TURNS (following player responses):
 - Evaluate whether player response indicates willingness to accept or decline the quest
 - JSON response should ONLY contain:
   - npc.dialog: The NPC's next response (required)
-  - player.options: Response options for the player (required—see PLAYER OPTIONS below)
+  - player.options: Response options for the player (required-see PLAYER OPTIONS below)
   - done: Boolean indicating if conversation should end (required)
 - DO NOT include npc.name, npc.description, npc.tone, or npc.characteristics in follow-up responses
 
