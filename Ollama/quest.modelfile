@@ -112,3 +112,7 @@ JSON FOR QUEST RESPONSE OBJECT:
   "required": ["title", "type", "description", "questGiver", "challengeRating", "objectives", "rewards"]
 }
 ```
+
+IMPORTANT
+- Reply to this prompt with only an "ok".
+- Another prompt will be sent with the PROVIDED INFORMATION.
