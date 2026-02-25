@@ -9,15 +9,31 @@ builder.Services.AddControllersWithViews();
 // Register LoggingService as singleton
 builder.Services.AddSingleton<LoggingService>();
 
+// Register ModelSelectionService as singleton to track which model is selected
+builder.Services.AddSingleton<ModelSelectionService>();
+
 // Register OllamaService with configuration from appsettings
 builder.Services.AddScoped<OllamaService>(sp =>
 {
-    var cloudBaseUrl = builder.Configuration["Ollama:CloudModel:BaseUrl"] ?? "https://ollama.com";
+    var modelSelectionService = sp.GetRequiredService<ModelSelectionService>();
+    var selectedModelType = modelSelectionService.GetSelectedModelType();
+    
+    var localModelName = builder.Configuration["Ollama:LocalModel:Name"] ?? "llama3.1:8b";
+    var localBaseUrl = builder.Configuration["Ollama:LocalModel:BaseUrl"] ?? "http://localhost:11434";
     var cloudModelName = builder.Configuration["Ollama:CloudModel:Name"] ?? "glm-5:cloud";
-    var apiKey = builder.Configuration["Ollama:CloudModel:ApiKey"];
+    var cloudBaseUrl = builder.Configuration["Ollama:CloudModel:BaseUrl"] ?? "https://ollama.com";
+    var cloudApiKey = builder.Configuration["Ollama:CloudModel:ApiKey"];
     var loggingService = sp.GetRequiredService<LoggingService>();
-    // Initialize with cloud model by default
-    return new OllamaService(cloudBaseUrl, cloudModelName, apiKey, loggingService);
+    
+    // Create service with the selected model
+    if (selectedModelType == "local")
+    {
+        return new OllamaService(localBaseUrl, localModelName, null, loggingService);
+    }
+    else
+    {
+        return new OllamaService(cloudBaseUrl, cloudModelName, cloudApiKey, loggingService);
+    }
 });
 
 builder.Services.AddScoped<PromptService>();

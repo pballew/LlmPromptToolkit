@@ -14,8 +14,9 @@ public class HomeController : Controller
     private readonly LoggingService _loggingService;
     private readonly ILogger<HomeController> _logger;
     private readonly IConfiguration _configuration;
+    private readonly ModelSelectionService _modelSelectionService;
 
-    public HomeController(OllamaService ollamaService, PromptService promptService, JsonValidationService validationService, LoggingService loggingService, ILogger<HomeController> logger, IConfiguration configuration)
+    public HomeController(OllamaService ollamaService, PromptService promptService, JsonValidationService validationService, LoggingService loggingService, ILogger<HomeController> logger, IConfiguration configuration, ModelSelectionService modelSelectionService)
     {
         _ollamaService = ollamaService;
         _promptService = promptService;
@@ -23,6 +24,7 @@ public class HomeController : Controller
         _loggingService = loggingService;
         _logger = logger;
         _configuration = configuration;
+        _modelSelectionService = modelSelectionService;
     }
 
     public async Task<IActionResult> Index()
@@ -217,6 +219,9 @@ public class HomeController : Controller
     {
         try
         {
+            // Persist model selection in singleton service for factory to use on next request
+            _modelSelectionService.SetSelectedModelType(modelType);
+
             var localModelName = _configuration["Ollama:LocalModel:Name"] ?? "llama3.1:8b";
             var localBaseUrl = _configuration["Ollama:LocalModel:BaseUrl"] ?? "http://localhost:11434";
             var cloudModelName = _configuration["Ollama:CloudModel:Name"] ?? "glm-5:cloud";

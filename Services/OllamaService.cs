@@ -269,6 +269,7 @@ public class OllamaService
             TimeSpan elapsed = endTime - startTime;
             
             _loggingService?.Log($"✓ Response received in {elapsed.TotalSeconds:F2} seconds", "SUCCESS");
+            _loggingService?.Log($"📋 Raw JSON response: {responseJson.Substring(0, Math.Min(500, responseJson.Length))}...", "DEBUG");
 
             var llmResponse = JsonSerializer.Deserialize<LlmResponse>(responseJson);
 
@@ -276,6 +277,16 @@ public class OllamaService
             {
                 _loggingService?.Log($"📊 Response length: {llmResponse.Response.Length} characters", "INFO");
                 _loggingService?.Log($"🎯 Model used: {llmResponse.Model}", "INFO");
+                _loggingService?.Log($"🔄 Context is null: {llmResponse.Context == null}", "DEBUG");
+                _loggingService?.Log($"🔄 Context length: {llmResponse.Context?.Length ?? -1}", "DEBUG");
+                if (llmResponse.Context != null && llmResponse.Context.Length > 0)
+                {
+                    _loggingService?.Log($"🔄 Context returned: {llmResponse.Context.Length} tokens", "INFO");
+                }
+                else
+                {
+                    _loggingService?.Log($"⚠️ Context empty or null - no context tokens in response", "WARN");
+                }
                 _loggingService?.Log($"✓ Request completed successfully", "SUCCESS");
             }
 
