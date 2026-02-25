@@ -6,11 +6,12 @@ using System.Text.Json;
 public class OllamaService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _baseUrl = "http://localhost:11434";
-    private string _modelName = "llama3.1:8b";
+    private string _baseUrl = "http://localhost:11434";
+    private string _modelName = "glm-5:cloud";
+    private string? _apiKey;
     private readonly LoggingService? _loggingService;
 
-    public OllamaService(string baseUrl, string? modelName = null, LoggingService? loggingService = null)
+    public OllamaService(string baseUrl, string? modelName = null, string? apiKey = null, LoggingService? loggingService = null)
     {
         if (!string.IsNullOrWhiteSpace(baseUrl))
         {
@@ -20,6 +21,11 @@ public class OllamaService
         if (!string.IsNullOrWhiteSpace(modelName))
         {
             _modelName = modelName;
+        }
+
+        if (!string.IsNullOrWhiteSpace(apiKey))
+        {
+            _apiKey = apiKey;
         }
 
         _loggingService = loggingService;
@@ -32,10 +38,34 @@ public class OllamaService
     public string GetModelName() => _modelName;
 
     /// <summary>
-    /// Checks if the specified model is loaded and running
+    /// Sets a new model with optional base URL and API key
+    /// </summary>
+    public void SetModel(string modelName, string? baseUrl = null, string? apiKey = null)
+    {
+        _modelName = modelName;
+        if (!string.IsNullOrWhiteSpace(baseUrl))
+        {
+            _baseUrl = baseUrl.Trim().TrimEnd('/');
+        }
+        if (!string.IsNullOrWhiteSpace(apiKey))
+        {
+            _apiKey = apiKey;
+        }
+        _loggingService?.Log($"Model changed to '{_modelName}' with base URL: {_baseUrl}", "INFO");
+    }
+
+    /// <summary>
+    /// Checks if the specified model is loaded and running (for Ollama only)
     /// </summary>
     public async Task<bool> IsModelLoadedAsync(string modelName)
     {
+        // For non-localhost APIs, skip the local model check
+        if (!_baseUrl.Contains("localhost") && !_baseUrl.Contains("127.0.0.1"))
+        {
+            _loggingService?.Log($"Using online API - skipping local model check", "INFO");
+            return true;
+        }
+
         try
         {
             _loggingService?.Log($"Checking if model '{modelName}' is loaded...", "INFO");
@@ -77,10 +107,17 @@ public class OllamaService
     }
 
     /// <summary>
-    /// Pulls and loads the specified model
+    /// Pulls and loads the specified model (for Ollama only)
     /// </summary>
     public async Task<bool> PullModelAsync(string modelName)
     {
+        // For non-localhost APIs, models are already available
+        if (!_baseUrl.Contains("localhost") && !_baseUrl.Contains("127.0.0.1"))
+        {
+            _loggingService?.Log($"Using online API - model '{modelName}' is already available", "SUCCESS");
+            return true;
+        }
+
         try
         {
             _loggingService?.Log($"🔄 Pulling model: {modelName}...", "INFO");
@@ -121,6 +158,73 @@ public class OllamaService
         }
     }
 
+    /// <summary>
+    /// Checks if a model is available at a specific endpoint
+    /// </summary>
+    public async Task<bool> CheckModelAvailabilityAsync(string baseUrl, string modelName, string? apiKey = null)
+    {
+        try
+        {
+            var url = baseUrl.TrimEnd('/');
+            // For local endpoints, check if model is loaded
+            if (url.Contains("localhost") || url.Contains("127.0.0.1"))
+            {
+                var response = await _httpClient.GetAsync($"{url}/api/tags");
+                if (response.IsSuccessStatusCode)
+                {
+                    var tagsJson = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(tagsJson);
+                    var root = doc.RootElement;
+                    
+                    if (root.TryGetProperty("models", out var modelsArray))
+                    {
+                        foreach (var model in modelsArray.EnumerateArray())
+                        {
+                            if (model.TryGetProperty("name", out var nameElement))
+                            {
+                                string name = nameElement.GetString() ?? string.Empty;
+                                if (name.StartsWith(modelName))
+                                {
+                                    _loggingService?.Log($"✓ Local model '{modelName}' is available", "SUCCESS");
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    _loggingService?.Log($"✗ Local model '{modelName}' not found", "WARN");
+                    return false;
+                }
+                return false;
+            }
+            else
+            {
+                // For online APIs, just try a request to validate the endpoint and key
+                var request = new HttpRequestMessage(HttpMethod.Get, $"{url}/api/tags");
+                if (!string.IsNullOrWhiteSpace(apiKey))
+                {
+                    request.Headers.Add("Authorization", $"Bearer {apiKey}");
+                }
+                
+                var response = await _httpClient.SendAsync(request);
+                if (response.IsSuccessStatusCode)
+                {
+                    _loggingService?.Log($"✓ Cloud model '{modelName}' is available", "SUCCESS");
+                    return true;
+                }
+                else
+                {
+                    _loggingService?.Log($"✗ Cloud model '{modelName}' unavailable: {response.StatusCode}", "WARN");
+                    return false;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _loggingService?.Log($"Error checking model availability: {ex.Message}", "WARN");
+            return false;
+        }
+    }
+
     public async Task<LlmResponse> GetLlmResponseAsync(string prompt, int[]? context = null)
     {
         var startTime = DateTime.Now;
@@ -147,7 +251,17 @@ public class OllamaService
         try
         {
             _loggingService?.Log("📤 Waiting for response...", "DEBUG");
-            HttpResponseMessage response = await _httpClient.PostAsync($"{_baseUrl}/api/generate", content);
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/api/generate")
+            {
+                Content = content
+            };
+            
+            if (!string.IsNullOrWhiteSpace(_apiKey))
+            {
+                request.Headers.Add("Authorization", $"Bearer {_apiKey}");
+            }
+            
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
             string responseJson = await response.Content.ReadAsStringAsync();
@@ -172,8 +286,8 @@ public class OllamaService
         catch (HttpRequestException ex)
         {
             _loggingService?.Log($"✗ Connection failed: {ex.Message}", "ERROR");
-            _loggingService?.Log($"Make sure Ollama is running at {_baseUrl}", "ERROR");
-            throw new Exception($"Failed to connect to Ollama server at {_baseUrl}. Make sure Ollama is running.", ex);
+            _loggingService?.Log($"Make sure the API server is accessible at {_baseUrl}", "ERROR");
+            throw new Exception($"Failed to connect to API server at {_baseUrl}. Please check the URL and API key.", ex);
         }
         catch (Exception ex)
         {

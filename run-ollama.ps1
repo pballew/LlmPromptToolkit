@@ -1,0 +1,1 @@
+ollama run glm-5 --keepalive 8h

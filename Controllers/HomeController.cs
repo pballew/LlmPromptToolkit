@@ -13,14 +13,16 @@ public class HomeController : Controller
     private readonly JsonValidationService _validationService;
     private readonly LoggingService _loggingService;
     private readonly ILogger<HomeController> _logger;
+    private readonly IConfiguration _configuration;
 
-    public HomeController(OllamaService ollamaService, PromptService promptService, JsonValidationService validationService, LoggingService loggingService, ILogger<HomeController> logger)
+    public HomeController(OllamaService ollamaService, PromptService promptService, JsonValidationService validationService, LoggingService loggingService, ILogger<HomeController> logger, IConfiguration configuration)
     {
         _ollamaService = ollamaService;
         _promptService = promptService;
         _validationService = validationService;
         _loggingService = loggingService;
         _logger = logger;
+        _configuration = configuration;
     }
 
     public async Task<IActionResult> Index()
@@ -204,6 +206,63 @@ public class HomeController : Controller
             _logger.LogError(ex, "Error sending comms request");
             _loggingService.Log($"Error: {ex.Message}", "ERROR");
             return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// API endpoint to switch between models
+    /// </summary>
+    [HttpPost]
+    public async Task<IActionResult> SetModel([FromForm] string modelType)
+    {
+        try
+        {
+            var localModelName = _configuration["Ollama:LocalModel:Name"] ?? "llama3.1:8b";
+            var localBaseUrl = _configuration["Ollama:LocalModel:BaseUrl"] ?? "http://localhost:11434";
+            var cloudModelName = _configuration["Ollama:CloudModel:Name"] ?? "glm-5:cloud";
+            var cloudBaseUrl = _configuration["Ollama:CloudModel:BaseUrl"] ?? "https://ollama.com";
+            var cloudApiKey = _configuration["Ollama:CloudModel:ApiKey"];
+
+            if (modelType == "local")
+            {
+                _ollamaService.SetModel(localModelName, localBaseUrl, null);
+                _loggingService.Log($"🔄 Switched to local model: {localModelName}", "INFO");
+                
+                // Check if model is available
+                bool available = await _ollamaService.CheckModelAvailabilityAsync(localBaseUrl, localModelName, null);
+                return Json(new { 
+                    success = true, 
+                    modelName = localModelName, 
+                    modelType = "local",
+                    available = available,
+                    message = available ? "Local model is ready" : "Local model is loading..."
+                });
+            }
+            else if (modelType == "cloud")
+            {
+                _ollamaService.SetModel(cloudModelName, cloudBaseUrl, cloudApiKey);
+                _loggingService.Log($"🔄 Switched to cloud model: {cloudModelName}", "INFO");
+                
+                // Check if model is available
+                bool available = await _ollamaService.CheckModelAvailabilityAsync(cloudBaseUrl, cloudModelName, cloudApiKey);
+                return Json(new { 
+                    success = true, 
+                    modelName = cloudModelName, 
+                    modelType = "cloud",
+                    available = available,
+                    message = available ? "Cloud model is ready" : "Cloud model is unavailable"
+                });
+            }
+            else
+            {
+                return BadRequest(new { success = false, error = "Invalid model type. Use 'local' or 'cloud'" });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error switching model");
+            _loggingService.Log($"Error switching model: {ex.Message}", "ERROR");
+            return BadRequest(new { success = false, error = ex.Message });
         }
     }
 

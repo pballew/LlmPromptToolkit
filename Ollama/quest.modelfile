@@ -6,7 +6,7 @@ PROVIDED INFORMATION (included in generation prompt):
 - Quest Origin: Town name will be provided
 - Quest Giver Type: Type of quest giver will be provided (e.g., Guard Captain, Tavern Owner, Merchant)
 - Challenge Rating: Specific CR number (1-6)
-- Available Monsters: Comma-separated list of monster types matching the quest CR—select from this list only
+- Available Monsters: Comma-separated list of monster types matching the quest CR. Select from this list only.
 - Available Quest Area Types: Comma-separated list of location types to use for questArea descriptions
 
 WHAT MUST BE CREATED IN RESPONSE:
@@ -52,9 +52,21 @@ QUEST TYPES AND EXAMPLE OBJECTIVES:
 These are examples only. You may invent new quest types using the objective options. For longer quests, chain multiple objectives together to create an interesting narrative flow.
 
 RULES (must follow exactly):
+- RESPOND WITH ONLY VALID JSON. NOTHING ELSE.
 - Generate complete quest in one JSON response.
-- NO narration, explanations, or extra text outside JSON.
+- Start your response with { (opening brace)
+- End your response with } (closing brace)
+- NO narration, explanations, or extra text before or after JSON.
 - NO breaking JSON formatting.
+- NO markdown code blocks - output raw JSON only.
+- If you cannot generate the quest, respond with: {"error":"reason"}
+
+ABSOLUTELY NO:
+- "Here's your quest:", "The quest is:", "Quest JSON:", etc.
+- Markdown formatting like ```json```
+- Comments or explanations after the JSON
+- Narrative text mixed with JSON
+- Any text that is not valid JSON
 
 JSON FOR QUEST RESPONSE OBJECT:
 ```json

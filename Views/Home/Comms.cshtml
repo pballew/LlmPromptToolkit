@@ -43,6 +43,23 @@
             <!-- Prompt Input Section -->
             <div class="card">
                 <div class="card-body p-1">
+                    <!-- Model Selection -->
+                    <div class="mb-1">
+                        <label for="modelDropdown" class="form-label">
+                            <i class="bi bi-router"></i> AI Model
+                        </label>
+                        <div class="input-group input-group-sm">
+                            <select class="form-select" id="modelDropdown" 
+                                    onchange="switchModel()" style="max-width: 100%;">
+                                <option value="cloud" selected>Cloud Model (glm-5:cloud - Fast)</option>
+                                <option value="local">Local Model (llama3.1:8b - Slower)</option>
+                            </select>
+                            <span class="input-group-text" id="modelStatus">
+                                <small><span class="badge bg-success">✓ Ready</span></span>
+                            </span>
+                        </div>
+                    </div>
+
                     @if (Model?.AvailablePrompts != null && Model.AvailablePrompts.Count > 0)
                     {
                         <div class="mb-1">
@@ -103,6 +120,48 @@
     let isSending = false;
     let activeSchema = null;
     let activeSchemaSourceIndex = null;
+
+    // Switch between local and cloud models
+    async function switchModel() {
+        const modelType = document.getElementById('modelDropdown').value;
+        const statusElement = document.getElementById('modelStatus');
+        
+        try {
+            statusElement.innerHTML = '<small><span class="badge bg-warning">Loading...</span></small>';
+            
+            const formData = new FormData();
+            formData.append('modelType', modelType);
+            
+            const response = await fetch('/Home/SetModel', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                // Clear conversation history
+                conversationHistory = [];
+                document.getElementById('conversationHistory').innerHTML = '';
+                
+                // Update status badge
+                if (result.available) {
+                    statusElement.innerHTML = '<small><span class="badge bg-success">✓ Ready</span></small>';
+                } else {
+                    statusElement.innerHTML = '<small><span class="badge bg-warning">⚠ Loading</span></small>';
+                }
+                
+                console.log('Model switched to:', result.modelName);
+                console.log('Message:', result.message);
+            } else {
+                statusElement.innerHTML = '<small><span class="badge bg-danger">✗ Error</span></small>';
+                alert('Error switching model: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error switching model:', error);
+            statusElement.innerHTML = '<small><span class="badge bg-danger">✗ Error</span></small>';
+            alert('Error switching model');
+        }
+    }
 
     // Load prompt when selected
     async function loadPrompt() {
