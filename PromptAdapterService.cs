@@ -10,7 +10,7 @@ public class PromptAdapterService
     private readonly OllamaService _ollamaService;
     private readonly string _modelName;
 
-    public PromptAdapterService(OllamaService ollamaService, string modelName = "glm-5:cloud")
+    public PromptAdapterService(OllamaService ollamaService, string modelName = "llama3.1:8b")
     {
         _ollamaService = ollamaService;
         _modelName = modelName;

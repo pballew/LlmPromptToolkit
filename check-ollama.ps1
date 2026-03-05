@@ -1,6 +1,6 @@
 # Check connectivity to the online Ollama API
 $apiUrl = "https://ollama.com/api"
-$modelName = "glm-5:cloud"
+$modelName = "llama3.1:8b"
 
 Write-Host "Checking connectivity to Ollama API at $apiUrl..." -ForegroundColor Cyan
 

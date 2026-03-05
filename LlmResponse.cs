@@ -21,6 +21,12 @@ public class LlmResponse
     [JsonPropertyName("context")]
     public int[] Context { get; set; } = [];
 
+    [JsonPropertyName("prompt_eval_count")]
+    public int PromptEvalCount { get; set; } = 0;
+
+    [JsonPropertyName("eval_count")]
+    public int EvalCount { get; set; } = 0;
+
     public void Print()
     {
         Console.WriteLine("LlmResponse");
@@ -29,5 +35,6 @@ public class LlmResponse
         Console.WriteLine($" - Done: {Done}");
         Console.WriteLine($" - Response:\n{Response}");
         Console.WriteLine($" - Context count: {Context.Length}");
+        Console.WriteLine($" - Prompt tokens: {PromptEvalCount}, Output tokens: {EvalCount}");
     }
 }

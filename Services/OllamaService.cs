@@ -7,7 +7,7 @@ public class OllamaService
 {
     private readonly HttpClient _httpClient;
     private string _baseUrl = "http://localhost:11434";
-    private string _modelName = "glm-5:cloud";
+    private string _modelName = "llama3.1:8b";
     private string? _apiKey;
     private readonly LoggingService? _loggingService;
 
@@ -277,15 +277,15 @@ public class OllamaService
             {
                 _loggingService?.Log($"📊 Response length: {llmResponse.Response.Length} characters", "INFO");
                 _loggingService?.Log($"🎯 Model used: {llmResponse.Model}", "INFO");
-                _loggingService?.Log($"🔄 Context is null: {llmResponse.Context == null}", "DEBUG");
+                _loggingService?.Log($"� Prompt tokens: {llmResponse.PromptEvalCount}, Output tokens: {llmResponse.EvalCount}", "INFO");
                 _loggingService?.Log($"🔄 Context length: {llmResponse.Context?.Length ?? -1}", "DEBUG");
                 if (llmResponse.Context != null && llmResponse.Context.Length > 0)
                 {
-                    _loggingService?.Log($"🔄 Context returned: {llmResponse.Context.Length} tokens", "INFO");
+                    _loggingService?.Log($"✓ Context returned: {llmResponse.Context.Length} tokens available for next request", "SUCCESS");
                 }
                 else
                 {
-                    _loggingService?.Log($"⚠️ Context empty or null - no context tokens in response", "WARN");
+                    _loggingService?.Log($"⚠️  No context tokens in response (model may not support context)", "WARN");
                 }
                 _loggingService?.Log($"✓ Request completed successfully", "SUCCESS");
             }
